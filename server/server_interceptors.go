@@ -44,7 +44,7 @@ const (
 )
 
 // This interceptor provides a way to lock out any unary calls while we adjust the server
-func (s *sdkGrpcServer) rwlockUnaryIntercepter(
+func (s *GrpcFrameworkServer) rwlockUnaryIntercepter(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -57,7 +57,7 @@ func (s *sdkGrpcServer) rwlockUnaryIntercepter(
 }
 
 // This interceptor provides a way to lock out any stream calls while we adjust the server
-func (s *sdkGrpcServer) rwlockStreamIntercepter(
+func (s *GrpcFrameworkServer) rwlockStreamIntercepter(
 	srv interface{},
 	stream grpc.ServerStream,
 	info *grpc.StreamServerInfo,
@@ -70,7 +70,7 @@ func (s *sdkGrpcServer) rwlockStreamIntercepter(
 }
 
 // Authenticate user and add authorization information back in the context
-func (s *sdkGrpcServer) auth(ctx context.Context) (context.Context, error) {
+func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error) {
 	var token string
 	var err error
 
@@ -123,7 +123,7 @@ func (s *sdkGrpcServer) auth(ctx context.Context) (context.Context, error) {
 	}
 }
 
-func (s *sdkGrpcServer) loggerInterceptor(ctx context.Context, handler func() error, fullMethod string) error {
+func (s *GrpcFrameworkServer) loggerInterceptor(ctx context.Context, handler func() error, fullMethod string) error {
 	reqid := uuid.New()
 	log := correlation.NewFunctionLogger(ctx)
 	log.Out = s.accessLogOutput
@@ -145,7 +145,7 @@ func (s *sdkGrpcServer) loggerInterceptor(ctx context.Context, handler func() er
 	return err
 }
 
-func (s *sdkGrpcServer) loggerServerUnaryInterceptor(
+func (s *GrpcFrameworkServer) loggerServerUnaryInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -162,7 +162,7 @@ func (s *sdkGrpcServer) loggerServerUnaryInterceptor(
 	return i, err
 }
 
-func (s *sdkGrpcServer) loggerServerStreamInterceptor(
+func (s *GrpcFrameworkServer) loggerServerStreamInterceptor(
 	srv interface{},
 	stream grpc.ServerStream,
 	info *grpc.StreamServerInfo,
@@ -179,7 +179,7 @@ func (s *sdkGrpcServer) loggerServerStreamInterceptor(
 	}, info.FullMethod)
 }
 
-func (s *sdkGrpcServer) authorizationInterceptor(
+func (s *GrpcFrameworkServer) authorizationInterceptor(
 	ctx context.Context,
 	handler func() error,
 	fullMethod string,
@@ -240,7 +240,7 @@ func (s *sdkGrpcServer) authorizationInterceptor(
 	return err
 }
 
-func (s *sdkGrpcServer) authorizationServerUnaryInterceptor(
+func (s *GrpcFrameworkServer) authorizationServerUnaryInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -258,7 +258,7 @@ func (s *sdkGrpcServer) authorizationServerUnaryInterceptor(
 	return i, err
 }
 
-func (s *sdkGrpcServer) authorizationServerStreamInterceptor(
+func (s *GrpcFrameworkServer) authorizationServerStreamInterceptor(
 	srv interface{},
 	stream grpc.ServerStream,
 	info *grpc.StreamServerInfo,

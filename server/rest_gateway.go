@@ -19,37 +19,34 @@ package server
 import (
 	"context"
 	"fmt"
-	"mime"
 	"net/http"
 
-	"github.com/gobuffalo/packr"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/libopenstorage/openstorage/api"
-	"github.com/libopenstorage/openstorage/pkg/correlation"
-	"github.com/libopenstorage/openstorage/pkg/grpcserver"
+	"github.com/libopenstorage/grpc-framework/pkg/correlation"
+	grpcclient "github.com/libopenstorage/grpc-framework/pkg/grpc/client"
 )
 
-type sdkRestGateway struct {
+type RestGateway struct {
 	config     ServerConfig
 	restPort   string
-	grpcServer *sdkGrpcServer
+	grpcServer *GrpcFrameworkServer
 	server     *http.Server
 }
 
-func newSdkRestGateway(config *ServerConfig, grpcServer *sdkGrpcServer) (*sdkRestGateway, error) {
-	return &sdkRestGateway{
+func NewRestGateway(config *ServerConfig, grpcServer *GrpcFrameworkServer) (*RestGateway, error) {
+	return &RestGateway{
 		config:     *config,
 		restPort:   config.RestPort,
 		grpcServer: grpcServer,
 	}, nil
 }
 
-func (s *sdkRestGateway) Start() error {
+func (s *RestGateway) Start() error {
 	mux, err := s.restServerSetupHandlers()
 	if err != nil {
 		return err
@@ -85,7 +82,7 @@ func (s *sdkRestGateway) Start() error {
 	return nil
 }
 
-func (s *sdkRestGateway) Stop() {
+func (s *RestGateway) Stop() {
 	if err := s.server.Close(); err != nil {
 		logrus.Fatalf("REST GW STOP error: %v", err)
 	}
@@ -93,12 +90,14 @@ func (s *sdkRestGateway) Stop() {
 
 // restServerSetupHandlers sets up the handlers to the swagger ui and
 // to the gRPC REST Gateway.
-func (s *sdkRestGateway) restServerSetupHandlers() (http.Handler, error) {
+func (s *RestGateway) restServerSetupHandlers() (http.Handler, error) {
 
 	// Create an HTTP server router
 	mux := http.NewServeMux()
 
 	// Swagger files using packr
+	/* Packr on swagger
+
 	swaggerUIBox := packr.NewBox("./swagger-ui")
 	swaggerJSONBox := packr.NewBox("./api")
 	mime.AddExtensionType(".svg", "image/svg+xml")
@@ -119,6 +118,7 @@ func (s *sdkRestGateway) restServerSetupHandlers() (http.Handler, error) {
 	prefix = "/sdk/"
 	mux.Handle(prefix,
 		http.StripPrefix(prefix, http.FileServer(swaggerUIBox)))
+	*/
 
 	mux.Handle("/metrics", promhttp.Handler())
 
@@ -126,7 +126,7 @@ func (s *sdkRestGateway) restServerSetupHandlers() (http.Handler, error) {
 	gmux := runtime.NewServeMux()
 
 	// Connect to gRPC unix domain socket
-	conn, err := grpcserver.Connect(
+	conn, err := grpcclient.Connect(
 		s.grpcServer.Address(),
 		[]grpc.DialOption{
 			grpc.WithInsecure(),
@@ -136,30 +136,8 @@ func (s *sdkRestGateway) restServerSetupHandlers() (http.Handler, error) {
 		return nil, fmt.Errorf("Failed to connect to gRPC handler: %v", err)
 	}
 
-	// REST Gateway Handlers
-	handlers := []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) (err error){
-		api.RegisterOpenStorageClusterHandler,
-		api.RegisterOpenStorageNodeHandler,
-		api.RegisterOpenStorageVolumeHandler,
-		api.RegisterOpenStorageObjectstoreHandler,
-		api.RegisterOpenStorageCredentialsHandler,
-		api.RegisterOpenStorageSchedulePolicyHandler,
-		api.RegisterOpenStorageCloudBackupHandler,
-		api.RegisterOpenStorageIdentityHandler,
-		api.RegisterOpenStorageMountAttachHandler,
-		api.RegisterOpenStorageAlertsHandler,
-		api.RegisterOpenStorageClusterPairHandler,
-		api.RegisterOpenStorageMigrateHandler,
-		api.RegisterOpenStorageRoleHandler,
-		api.RegisterOpenStoragePolicyHandler,
-		api.RegisterOpenStorageDiagsHandler,
-	}
-
-	// REST Gateway extensions
-	handlers = append(handlers, s.config.RestServerExtensions...)
-
 	// Register the REST Gateway handlers
-	for _, handler := range handlers {
+	for _, handler := range s.config.RestServerExtensions {
 		err := handler(context.Background(), gmux, conn)
 		if err != nil {
 			return nil, err

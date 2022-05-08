@@ -22,43 +22,27 @@ import (
 	"io"
 	"net"
 	"os"
-	"sync"
 
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/libopenstorage/openstorage/alerts"
-	"github.com/libopenstorage/openstorage/api"
-	"github.com/libopenstorage/openstorage/api/spec"
 	"github.com/libopenstorage/openstorage/cluster"
-	"github.com/libopenstorage/openstorage/pkg/correlation"
 	"github.com/libopenstorage/openstorage/pkg/grpcserver"
-	"github.com/libopenstorage/openstorage/pkg/role"
-	policy "github.com/libopenstorage/openstorage/pkg/storagepolicy"
 	"github.com/libopenstorage/openstorage/volume"
-	volumedrivers "github.com/libopenstorage/openstorage/volume/drivers"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 const (
 	// Default audig log location
-	defaultAuditLog = "/var/log/openstorage-audit.log"
+	defaultAuditLog = "grpc-framework-audit.log"
 	// Default access log location
-	defaultAccessLog = "/var/log/openstorage-access.log"
-	// ContextDriverKey is the driver key passed in context's metadata
-	ContextDriverKey = "driver"
-	// DefaultDriverName is the default driver to be used
-	DefaultDriverName = "default"
+	defaultAccessLog = "grpc-framework-access.log"
 )
 
 // Server is an implementation of the gRPC SDK interface
 type Server struct {
 	config      ServerConfig
-	netServer   *sdkGrpcServer
-	udsServer   *sdkGrpcServer
-	restGateway *sdkRestGateway
+	netServer   *GrpcFrameworkServer
+	udsServer   *GrpcFrameworkServer
+	restGateway *RestGateway
 
 	accessLog *os.File
 	auditLog  *os.File
@@ -76,47 +60,8 @@ type logger struct {
 	log *logrus.Entry
 }
 
-type sdkGrpcServer struct {
-	*grpcserver.GrpcServer
-
-	restPort string
-	lock     sync.RWMutex
-	name     string
-	config   ServerConfig
-
-	// Loggers
-	log             *logrus.Entry
-	auditLogOutput  io.Writer
-	accessLogOutput io.Writer
-
-	// Interface implementations
-	clusterHandler cluster.Cluster
-	driverHandlers map[string]volume.VolumeDriver
-	alertHandler   alerts.FilterDeleter
-
-	// gRPC Handlers
-	clusterServer         *ClusterServer
-	nodeServer            *NodeServer
-	volumeServer          *VolumeServer
-	objectstoreServer     *ObjectstoreServer
-	schedulePolicyServer  *SchedulePolicyServer
-	clusterPairServer     *ClusterPairServer
-	cloudBackupServer     *CloudBackupServer
-	credentialServer      *CredentialServer
-	identityServer        *IdentityServer
-	clusterDomainsServer  *ClusterDomainsServer
-	roleServer            role.RoleManager
-	alertsServer          api.OpenStorageAlertsServer
-	policyServer          policy.PolicyManager
-	storagePoolServer     api.OpenStoragePoolServer
-	diagsServer           api.OpenStorageDiagsServer
-	jobServer             api.OpenStorageJobServer
-	filesystemTrimServer  api.OpenStorageFilesystemTrimServer
-	filesystemCheckServer api.OpenStorageFilesystemCheckServer
-}
-
 // Interface check
-var _ grpcserver.Server = &sdkGrpcServer{}
+var _ grpcserver.Server = &GrpcFrameworkServer{}
 
 // New creates a new SDK server
 func New(config *ServerConfig) (*Server, error) {
@@ -165,7 +110,7 @@ func New(config *ServerConfig) (*Server, error) {
 	}
 	config.port = port
 	// Create a gRPC server on the network
-	netServer, err := newSdkGrpcServer(config)
+	netServer, err := NewGrpcFrameworkServer(config)
 	if err != nil {
 		return nil, err
 	}
@@ -174,13 +119,13 @@ func New(config *ServerConfig) (*Server, error) {
 	udsConfig := *config
 	udsConfig.Net = "unix"
 	udsConfig.Address = config.Socket
-	udsServer, err := newSdkGrpcServer(&udsConfig)
+	udsServer, err := NewGrpcFrameworkServer(&udsConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create REST Gateway and connect it to the unix domain socket server
-	restGateway, err := newSdkRestGateway(config, udsServer)
+	restGateway, err := newRestGateway(config, udsServer)
 	if err != nil {
 		return nil, err
 	}
@@ -200,8 +145,11 @@ func (s *Server) Start() error {
 	if err := s.netServer.Start(); err != nil {
 		return err
 	} else if err := s.udsServer.Start(); err != nil {
+		s.netServer.Stop()
 		return err
 	} else if err := s.restGateway.Start(); err != nil {
+		s.netServer.Stop()
+		s.udsServer.Stop()
 		return err
 	}
 
@@ -245,294 +193,4 @@ func (s *Server) UseVolumeDrivers(d map[string]volume.VolumeDriver) {
 func (s *Server) UseAlert(a alerts.FilterDeleter) {
 	s.netServer.useAlert(a)
 	s.udsServer.useAlert(a)
-}
-
-// New creates a new SDK gRPC server
-func newSdkGrpcServer(config *ServerConfig) (*sdkGrpcServer, error) {
-	if nil == config {
-		return nil, fmt.Errorf("Configuration must be provided")
-	}
-
-	// Create a log object for this server
-	name := "SDK-" + config.Net
-	log := logrus.WithFields(logrus.Fields{
-		"name": name,
-	})
-
-	// Save the driver for future calls
-	var (
-		d   volume.VolumeDriver
-		err error
-	)
-	if len(config.DriverName) != 0 {
-		d, err = volumedrivers.Get(config.DriverName)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to get driver %s info: %s", config.DriverName, err.Error())
-		}
-	}
-
-	// Setup authentication
-	for issuer, _ := range config.Security.Authenticators {
-		log.Infof("Authentication enabled for issuer: %s", issuer)
-
-		// Check the necessary security config options are set
-		if config.Security.Role == nil {
-			return nil, fmt.Errorf("Must supply role manager when authentication enabled")
-		}
-	}
-
-	if config.StoragePolicy == nil {
-		return nil, fmt.Errorf("Must supply storage policy server")
-	}
-
-	// Create gRPC server
-	gServer, err := grpcserver.New(&grpcserver.GrpcServerConfig{
-		Name:    name,
-		Net:     config.Net,
-		Address: config.Address,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Unable to setup %s server: %v", name, err)
-	}
-
-	s := &sdkGrpcServer{
-		GrpcServer:      gServer,
-		accessLogOutput: config.AccessOutput,
-		auditLogOutput:  config.AuditOutput,
-		config:          *config,
-		name:            name,
-		log:             log,
-		clusterHandler:  config.Cluster,
-		driverHandlers: map[string]volume.VolumeDriver{
-			config.DriverName: d,
-			DefaultDriverName: d,
-		},
-		alertHandler: config.AlertsFilterDeleter,
-		policyServer: config.StoragePolicy,
-	}
-	s.identityServer = &IdentityServer{
-		server: s,
-	}
-	s.clusterServer = &ClusterServer{
-		server: s,
-	}
-	s.nodeServer = &NodeServer{
-		server: s,
-	}
-	s.volumeServer = &VolumeServer{
-		server:      s,
-		specHandler: spec.NewSpecHandler(),
-	}
-	s.objectstoreServer = &ObjectstoreServer{
-		server: s,
-	}
-	s.schedulePolicyServer = &SchedulePolicyServer{
-		server: s,
-	}
-	s.cloudBackupServer = &CloudBackupServer{
-		server: s,
-	}
-	s.credentialServer = &CredentialServer{
-		server: s,
-	}
-	s.alertsServer = &alertsServer{
-		server: s,
-	}
-	s.clusterPairServer = &ClusterPairServer{
-		server: s,
-	}
-	s.clusterDomainsServer = &ClusterDomainsServer{
-		server: s,
-	}
-	s.filesystemTrimServer = &FilesystemTrimServer{
-		server: s,
-	}
-	s.filesystemCheckServer = &FilesystemCheckServer{
-		server: s,
-	}
-
-	s.storagePoolServer = &StoragePoolServer{
-		server: s,
-	}
-	s.diagsServer = &DiagsServer{
-		server: s,
-	}
-	s.jobServer = &JobServer{
-		server: s,
-	}
-
-	s.roleServer = config.Security.Role
-	s.policyServer = config.StoragePolicy
-	return s, nil
-}
-
-// Start is used to start the server.
-// It will return an error if the server is already running.
-func (s *sdkGrpcServer) Start() error {
-
-	// Setup https if certs have been provided
-	opts := make([]grpc.ServerOption, 0)
-	if s.config.Net != "unix" && s.config.Security.Tls != nil {
-		creds, err := credentials.NewServerTLSFromFile(
-			s.config.Security.Tls.CertFile,
-			s.config.Security.Tls.KeyFile)
-		if err != nil {
-			return fmt.Errorf("Failed to create credentials from cert files: %v", err)
-		}
-		opts = append(opts, grpc.Creds(creds))
-		s.log.Info("SDK TLS enabled")
-	} else {
-		s.log.Info("SDK TLS disabled")
-	}
-
-	// Add correlation interceptor
-	correlationInterceptor := correlation.ContextInterceptor{
-		Origin: correlation.ComponentSDK,
-	}
-
-	// Setup authentication and authorization using interceptors if auth is enabled
-	if len(s.config.Security.Authenticators) != 0 {
-		opts = append(opts, grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				s.rwlockUnaryIntercepter,
-				correlationInterceptor.ContextUnaryServerInterceptor,
-				grpc_auth.UnaryServerInterceptor(s.auth),
-				s.authorizationServerUnaryInterceptor,
-				s.loggerServerUnaryInterceptor,
-				grpc_prometheus.UnaryServerInterceptor,
-			)))
-		opts = append(opts, grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(
-				s.rwlockStreamIntercepter,
-				grpc_auth.StreamServerInterceptor(s.auth),
-				s.authorizationServerStreamInterceptor,
-				s.loggerServerStreamInterceptor,
-				grpc_prometheus.StreamServerInterceptor,
-			)))
-	} else {
-		opts = append(opts, grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				s.rwlockUnaryIntercepter,
-				correlationInterceptor.ContextUnaryServerInterceptor,
-				s.loggerServerUnaryInterceptor,
-				grpc_prometheus.UnaryServerInterceptor,
-			)))
-		opts = append(opts, grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(
-				s.rwlockStreamIntercepter,
-				s.loggerServerStreamInterceptor,
-				grpc_prometheus.StreamServerInterceptor,
-			)))
-	}
-
-	// Start the gRPC Server
-	err := s.GrpcServer.StartWithServer(func() *grpc.Server {
-		grpcServer := grpc.NewServer(opts...)
-
-		api.RegisterOpenStorageClusterServer(grpcServer, s.clusterServer)
-		api.RegisterOpenStorageNodeServer(grpcServer, s.nodeServer)
-		api.RegisterOpenStorageObjectstoreServer(grpcServer, s.objectstoreServer)
-		api.RegisterOpenStorageSchedulePolicyServer(grpcServer, s.schedulePolicyServer)
-		api.RegisterOpenStorageIdentityServer(grpcServer, s.identityServer)
-		api.RegisterOpenStorageVolumeServer(grpcServer, s.volumeServer)
-		api.RegisterOpenStorageMigrateServer(grpcServer, s.volumeServer)
-		api.RegisterOpenStorageCredentialsServer(grpcServer, s.credentialServer)
-		api.RegisterOpenStorageCloudBackupServer(grpcServer, s.cloudBackupServer)
-		api.RegisterOpenStorageMountAttachServer(grpcServer, s.volumeServer)
-		api.RegisterOpenStorageAlertsServer(grpcServer, s.alertsServer)
-		api.RegisterOpenStorageClusterPairServer(grpcServer, s.clusterPairServer)
-		api.RegisterOpenStoragePolicyServer(grpcServer, s.policyServer)
-		api.RegisterOpenStorageClusterDomainsServer(grpcServer, s.clusterDomainsServer)
-		api.RegisterOpenStorageFilesystemTrimServer(grpcServer, s.filesystemTrimServer)
-		api.RegisterOpenStorageFilesystemCheckServer(grpcServer, s.filesystemCheckServer)
-		if s.diagsServer != nil {
-			api.RegisterOpenStorageDiagsServer(grpcServer, s.diagsServer)
-		}
-
-		if s.storagePoolServer != nil {
-			api.RegisterOpenStoragePoolServer(grpcServer, s.storagePoolServer)
-		}
-
-		if s.config.Security.Role != nil {
-			api.RegisterOpenStorageRoleServer(grpcServer, s.roleServer)
-		}
-		if s.jobServer != nil {
-			api.RegisterOpenStorageJobServer(grpcServer, s.jobServer)
-		}
-
-		// Register stats for all the services
-		s.registerPrometheusMetrics(grpcServer)
-
-		s.registerServerExtensions(grpcServer)
-
-		return grpcServer
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *sdkGrpcServer) registerPrometheusMetrics(grpcServer *grpc.Server) {
-	// Register the gRPCs and enable latency historgram
-	grpc_prometheus.Register(grpcServer)
-	grpc_prometheus.EnableHandlingTimeHistogram()
-
-	// Initialize the metrics
-	grpcMetrics := grpc_prometheus.NewServerMetrics()
-	grpcMetrics.InitializeMetrics(grpcServer)
-}
-
-func (s *sdkGrpcServer) registerServerExtensions(grpcServer *grpc.Server) {
-	for _, ext := range s.config.GrpcServerExtensions {
-		ext(grpcServer)
-	}
-}
-
-func (s *sdkGrpcServer) useCluster(c cluster.Cluster) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.clusterHandler = c
-}
-
-func (s *sdkGrpcServer) useVolumeDrivers(d map[string]volume.VolumeDriver) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.driverHandlers = d
-}
-
-func (s *sdkGrpcServer) useAlert(a alerts.FilterDeleter) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.alertHandler = a
-}
-
-// Accessors
-func (s *sdkGrpcServer) driver(ctx context.Context) volume.VolumeDriver {
-	driverName := grpcserver.GetMetadataValueFromKey(ctx, ContextDriverKey)
-	if handler, ok := s.driverHandlers[driverName]; ok {
-		return handler
-	} else {
-		return s.driverHandlers[DefaultDriverName]
-	}
-}
-
-func (s *sdkGrpcServer) cluster() cluster.Cluster {
-	return s.clusterHandler
-}
-
-func (s *sdkGrpcServer) alert() alerts.FilterDeleter {
-	return s.alertHandler
-}
-
-func (s *sdkGrpcServer) auditLogWriter() io.Writer {
-	return s.auditLogOutput
-}
-
-func (s *sdkGrpcServer) port() string {
-	return s.config.port
 }
