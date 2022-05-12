@@ -16,6 +16,8 @@ limitations under the License.
 */
 package role
 
+/*
+
 import (
 	"context"
 	"fmt"
@@ -468,3 +470,4 @@ func (r *SdkRoleManager) validateRole(role *api.SdkRole) error {
 
 	return nil
 }
+*/

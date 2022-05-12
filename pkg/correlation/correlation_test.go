@@ -8,18 +8,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/libopenstorage/openstorage/pkg/correlation"
+	"github.com/libopenstorage/grpc-framework/pkg/correlation"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPackageLogger(t *testing.T) {
-	clogger := correlation.NewPackageLogger("test")
+	clogger := NewPackageLogger("test")
 	clogger.SetReportCaller(true)
 	var buf bytes.Buffer
 	clogger.SetOutput(&buf)
 	clogger.SetLevel(logrus.DebugLevel)
-	ctx := correlation.WithCorrelationContext(context.Background(), "test_origin")
+	ctx := WithCorrelationContext(context.Background(), "test_origin")
 
 	clogger.WithContext(ctx).Info("test info log")
 	clogger.WithContext(ctx).Errorf("test error log: %v", errors.New("test err"))

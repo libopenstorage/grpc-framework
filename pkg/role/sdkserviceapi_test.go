@@ -16,6 +16,8 @@ limitations under the License.
 */
 package role
 
+/*
+
 import (
 	"context"
 	"fmt"
@@ -764,3 +766,5 @@ func TestSdkRoleVerifyRules(t *testing.T) {
 		}
 	}
 }
+
+*/

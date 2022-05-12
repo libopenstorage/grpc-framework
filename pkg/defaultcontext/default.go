@@ -85,7 +85,7 @@ func (d *defaultContextManager) GetDefaultTimeout() time.Duration {
 // Add here any external default timeouts that need to be set
 func (d *defaultContextManager) apply() {
 
-	// Set SDK Gateway default context
+	// Set Rest Gateway default context
 	grpcgw.DefaultContextTimeout = d.timeout
 
 }
