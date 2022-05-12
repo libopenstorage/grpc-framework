@@ -21,7 +21,8 @@ import (
 	"net"
 	"os"
 
-	grpcserver "github.com/libopenstorage/openstorage/pkg/grpc/server"
+	grpcserver "github.com/libopenstorage/grpc-framework/pkg/grpc/server"
+	"github.com/libopenstorage/grpc-framework/pkg/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -78,14 +79,14 @@ func New(config *ServerConfig) (*Server, error) {
 		err                 error
 	)
 	if config.AuditOutput == nil {
-		auditLog, err = openLog(defaultAuditLog)
+		auditLog, err = util.OpenLog(defaultAuditLog)
 		if err != nil {
 			return nil, err
 		}
 		config.AuditOutput = auditLog
 	}
 	if config.AccessOutput == nil {
-		accessLog, err := openLog(defaultAccessLog)
+		accessLog, err := util.OpenLog(defaultAccessLog)
 		if err != nil {
 			return nil, err
 		}

@@ -1,6 +1,6 @@
 /*
-Package role manages roles in Kvdb and provides validation
-Copyright 2018 Portworx
+Package sdk is the gRPC implementation of the SDK gRPC server
+Copyright 2022 Pure Storage
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package role
+
+package util
 
 import (
-	"context"
+	"fmt"
+	"os"
 )
 
-// RoleManager provides an implementation of the SDK Role handler
-// and the necessary verification methods
-type RoleManager interface {
-	// Verify returns no error if the role exists and is allowed
-	// to run the requested method
-	Verify(ctx context.Context, roles []string, method string) error
+func OpenLog(logfile string) (*os.File, error) {
+	file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open logfile %s: %v", logfile, err)
+	}
+	return file, nil
 }

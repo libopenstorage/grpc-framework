@@ -14,19 +14,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package grpcutil
+package defaultcontext
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/libopenstorage/openstorage/pkg/defaultcontext"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestWithDefaultTimeout(t *testing.T) {
-	timeout := defaultcontext.Inst().GetDefaultTimeout()
+	timeout := Inst().GetDefaultTimeout()
 
 	ctx, _ := WithDefaultTimeout(context.Background())
 	deadline, ok := ctx.Deadline()

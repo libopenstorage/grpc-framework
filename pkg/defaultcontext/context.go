@@ -14,14 +14,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package grpcutil
+package defaultcontext
 
 import (
 	"context"
-
-	"github.com/libopenstorage/grpc-framework/pkg/defaultcontext"
 )
 
 func WithDefaultTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(ctx, defaultcontext.Inst().GetDefaultTimeout())
+	return context.WithTimeout(ctx, Inst().GetDefaultTimeout())
 }

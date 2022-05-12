@@ -21,8 +21,8 @@ import (
 	"io"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/libopenstorage/openstorage/pkg/auth"
-	"github.com/libopenstorage/openstorage/pkg/role"
+	"github.com/libopenstorage/grpc-framework/pkg/auth"
+	"github.com/libopenstorage/grpc-framework/pkg/role"
 	"google.golang.org/grpc"
 )
 
