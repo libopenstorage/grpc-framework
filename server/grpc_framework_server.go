@@ -167,7 +167,3 @@ func (s *GrpcFrameworkServer) registerPrometheusMetrics(grpcServer *grpc.Server)
 	grpcMetrics := grpc_prometheus.NewServerMetrics()
 	grpcMetrics.InitializeMetrics(grpcServer)
 }
-
-func (s *GrpcFrameworkServer) port() string {
-	return s.config.port
-}

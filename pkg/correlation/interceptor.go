@@ -77,5 +77,5 @@ func ContextUnaryClientInterceptor(
 }
 
 func DialOptionsAddCorrelation(dialOptions []grpc.DialOption) []grpc.DialOption {
-	return client.DialOptionsAdd(dialOptions, ContextUnaryClientInterceptor)
+	return client.DialOptionsAdd(dialOptions, grpc.WithUnaryInterceptor(ContextUnaryClientInterceptor))
 }
