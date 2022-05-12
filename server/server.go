@@ -14,19 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package sdk
+package server
 
 import (
-	"context"
 	"fmt"
-	"io"
 	"net"
 	"os"
 
-	"github.com/libopenstorage/openstorage/alerts"
-	"github.com/libopenstorage/openstorage/cluster"
-	"github.com/libopenstorage/openstorage/pkg/grpcserver"
-	"github.com/libopenstorage/openstorage/volume"
+	grpcserver "github.com/libopenstorage/openstorage/pkg/grpc/server"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,17 +38,10 @@ type Server struct {
 	netServer   *GrpcFrameworkServer
 	udsServer   *GrpcFrameworkServer
 	restGateway *RestGateway
+	grpcPort    string
 
 	accessLog *os.File
 	auditLog  *os.File
-}
-
-type serverAccessor interface {
-	alert() alerts.FilterDeleter
-	cluster() cluster.Cluster
-	driver(ctx context.Context) volume.VolumeDriver
-	auditLogWriter() io.Writer
-	port() string
 }
 
 type logger struct {
@@ -108,7 +96,6 @@ func New(config *ServerConfig) (*Server, error) {
 	if err != nil {
 		logrus.Warnf("SDK Address NOT in host:port format, failed to get port %v", err.Error())
 	}
-	config.port = port
 	// Create a gRPC server on the network
 	netServer, err := NewGrpcFrameworkServer(config)
 	if err != nil {
@@ -125,7 +112,7 @@ func New(config *ServerConfig) (*Server, error) {
 	}
 
 	// Create REST Gateway and connect it to the unix domain socket server
-	restGateway, err := newRestGateway(config, udsServer)
+	restGateway, err := NewRestGateway(config, udsServer)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +124,7 @@ func New(config *ServerConfig) (*Server, error) {
 		restGateway: restGateway,
 		auditLog:    auditLog,
 		accessLog:   accessLog,
+		grpcPort:    port,
 	}, nil
 }
 
@@ -177,20 +165,6 @@ func (s *Server) UdsAddress() string {
 	return s.udsServer.Address()
 }
 
-// UseCluster will setup a new cluster object for the gRPC handlers
-func (s *Server) UseCluster(c cluster.Cluster) {
-	s.netServer.useCluster(c)
-	s.udsServer.useCluster(c)
-}
-
-// UseVolumeDrivers will setup a new driver object for the gRPC handlers
-func (s *Server) UseVolumeDrivers(d map[string]volume.VolumeDriver) {
-	s.netServer.useVolumeDrivers(d)
-	s.udsServer.useVolumeDrivers(d)
-}
-
-// UseAlert will setup a new alert object for the gRPC handlers
-func (s *Server) UseAlert(a alerts.FilterDeleter) {
-	s.netServer.useAlert(a)
-	s.udsServer.useAlert(a)
+func (s *Server) GrpcPort() string {
+	return s.grpcPort
 }

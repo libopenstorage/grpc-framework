@@ -59,9 +59,6 @@ type ServerConfig struct {
 	// Address is the port number or the unix domain socket path.
 	// For the gRPC Server. This value goes together with `Net`.
 	Address string
-	// port is the port number at which remote GrpcFrameworkServer is running.Same
-	// across cluster. Exampl: 9020
-	port string
 	// RestAdress is the port number. Example: 9110
 	// For the gRPC REST Gateway.
 	RestPort string

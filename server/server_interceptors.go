@@ -21,10 +21,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/libopenstorage/openstorage/api"
-	"github.com/libopenstorage/openstorage/pkg/auth"
-	"github.com/libopenstorage/openstorage/pkg/correlation"
-	"github.com/libopenstorage/openstorage/pkg/grpcserver"
+	"github.com/libopenstorage/grpc-framework/pkg/auth"
+	"github.com/libopenstorage/grpc-framework/pkg/correlation"
+	grpcmetadata "github.com/libopenstorage/grpc-framework/pkg/grpc/metadata"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/pborman/uuid"
@@ -193,7 +192,8 @@ func (s *GrpcFrameworkServer) authorizationInterceptor(
 	claims := &userinfo.Claims
 
 	// Get method and API
-	reqService, reqAPI := grpcserver.GetMethodInformation(api.SdkRootPath, fullMethod)
+	// TODO: XXX ROOTPATH XXX
+	reqService, reqAPI := grpcmetadata.GetMethodInformation("", fullMethod)
 
 	// Setup auditor log
 	log := correlation.NewFunctionLogger(ctx)
