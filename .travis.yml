@@ -10,4 +10,4 @@ jobs:
   include:
     - stage: PR Verify & e2e tests
       script: 
-        - make pr-verify
+        - make travis-verify
