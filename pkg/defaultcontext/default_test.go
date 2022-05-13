@@ -32,6 +32,7 @@ func TestDefaultContextManager(t *testing.T) {
 
 	timeout := 100 * time.Hour
 	err := d.SetDefaultTimeout(timeout)
+	defer d.SetDefaultTimeout(defaultDuration)
 	assert.NoError(t, err)
 	assert.Equal(t, d.GetDefaultTimeout(), timeout)
 	assert.Equal(t, grpcgw.DefaultContextTimeout, timeout)
