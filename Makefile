@@ -31,6 +31,9 @@ test: build
 	@echo ">>> go test"
 	go test $(PKGS)
 
-verify: vet fmt test
+testapp:
+	$(MAKE) -C test/app
+
+verify: vet fmt test testapp
 
 travis-verify: pr-verify verify

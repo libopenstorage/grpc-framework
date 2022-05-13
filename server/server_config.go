@@ -20,7 +20,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/role"
 	"google.golang.org/grpc"
@@ -54,7 +54,7 @@ type ServerConfig struct {
 	// Name of the server
 	Name string
 	// Net is the transport for gRPC: unix, tcp, etc.
-	// For the gRPC Server. This value goes together with `Address`.
+	// Defaults to `tcp` if the value is not provided.
 	Net string
 	// Address is the port number or the unix domain socket path.
 	// For the gRPC Server. This value goes together with `Net`.
@@ -98,4 +98,14 @@ type ServerConfig struct {
 	// to the RestSererExtensions slice. These handlers will be registered on the
 	// REST Gateway http server.
 	RestServerExtensions []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error
+}
+
+func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server)) {
+	c.GrpcServerExtensions = append(c.GrpcServerExtensions, handlers)
+}
+
+func (c *ServerConfig) RegisterRestHandlers(
+	handlers ...func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error,
+) {
+	c.RestServerExtensions = append(c.RestServerExtensions, handlers...)
 }

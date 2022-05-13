@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	grpcgw "github.com/grpc-ecosystem/grpc-gateway/runtime"
+	grpcgw "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 var (

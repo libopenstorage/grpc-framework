@@ -40,6 +40,11 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 		return nil, fmt.Errorf("Configuration must be provided")
 	}
 
+	// Default to tcp
+	if len(config.Net) == 0 {
+		config.Net = "tcp"
+	}
+
 	// Create a log object for this server
 	name := "grpc-framework-" + config.Net
 	log := logrus.WithFields(logrus.Fields{
