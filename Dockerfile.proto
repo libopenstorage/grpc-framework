@@ -1,0 +1,49 @@
+#
+# Do not use directly, use `make docker-proto` instead
+#
+FROM golang
+LABEL org.opencontainers.image.authors="lpabon@purestorage.com"
+
+ENV GOPATH=/go
+RUN apt update
+RUN rm -rf /usr/local/go
+RUN apt-get install -y unzip
+RUN wget -nv https://dl.google.com/go/go1.18.2.linux-amd64.tar.gz && tar -xf go1.18.2.linux-amd64.tar.gz && mv go /usr/local  
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash 
+RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v3.20.1/protoc-3.20.1-linux-x86_64.zip
+RUN unzip protoc-3.20.1-linux-x86_64.zip -d /usr/local
+RUN apt-get -y -qq install \
+	python3 \
+	python3-pip \
+	rubygems \
+	nodejs \
+	make \
+	git 
+RUN gem install grpc && gem install grpc-tools
+
+#RUN GO111MODULE=off go get -u github.com/golang/protobuf/protoc-gen-go && \
+#	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger && \
+#       GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+
+RUN go install \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.10.0 \
+    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.10.0
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.0
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+# Get the proto files from the grpc-gateway
+RUN mkdir -p /go/src/github.com/grpc-ecosystem && \
+	cd /go/src/github.com/grpc-ecosystem && \
+	git clone -b v2.10.0 https://github.com/grpc-ecosystem/grpc-gateway.git
+
+# Install Google Api proto files
+RUN mkdir -p /go/src/github.com/googleapis && \
+	cd /go/src/github.com/googleapis && \
+	git clone https://github.com/googleapis/googleapis.git
+
+# Install swagger 2.0 to OpenApi 3.0 converter
+RUN npm install -g swagger2openapi
+
+# Finally, set working directory
+RUN mkdir -p /go/src/code
+WORKDIR /go/src/code

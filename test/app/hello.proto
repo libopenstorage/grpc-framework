@@ -1,0 +1,96 @@
+
+/// Please use the following editor setup for this file:
+// Tab size=2; Tabs as spaces; Clean up trailing whitepsace
+//
+// In vim add: au FileType proto setl sw=2 ts=2 expandtab list
+//
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+package hello;
+
+option go_package = "./hello";
+option java_multiple_files = true;
+option java_package = "com.hello.api";
+
+
+// The greeting service definition.
+service HelloGreeter {
+  // Sends a greeting
+  rpc SayHello (HelloGreeterSayHelloRequest)
+    returns (HelloGreeterSayHelloResponse) {
+      option(google.api.http) = {
+        post: "/v1/greeter/sayhello"
+        body: "*"
+      };
+  }
+}
+
+service HelloIdentity {
+  rpc Version(HelloIdentityVersionRequest)
+    returns (HelloIdentityVersionResponse) {
+      option(google.api.http) = {
+        get: "/v1/identity/version"
+      };
+    } 
+}
+
+// The request message containing the user's name.
+message HelloGreeterSayHelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloGreeterSayHelloResponse {
+  string message = 1;
+}
+
+// Empty request
+message HelloIdentityVersionRequest {
+}
+
+// Defines the response to version
+message HelloIdentityVersionResponse {
+  // Hello application version
+  HelloVersion hello_version = 1;
+}
+
+// Hello version in Major.Minor.Patch format. The goal of this
+// message is to provide clients a method to determine the server
+// and client versions.
+message HelloVersion {
+
+  // These values are constants that can be used by the
+  // client and server applications
+  enum Version {
+    // Allows multiple values to be set to the same integer
+    // Set when needed
+    option allow_alias = true;
+
+    // Must be set in the proto file; ignore.
+    MUST_HAVE_ZERO_VALUE = 0;
+
+    // SDK version major value of this specification
+    MAJOR = 0;
+    // SDK version minor value of this specification
+    MINOR = 0;
+    // SDK version patch value of this specification
+    PATCH = 1;
+  }
+
+  // The following cannot be set to use the enum Version because the REST
+  // Gateway would then return the string value of the enum.
+
+  // SDK version major number
+  int32 major = 1;
+  // SDK version minor number
+  int32 minor = 2;
+  // SDK version patch number
+  int32 patch = 3;
+  // String representation of the SDK version. Must be
+  // in `major.minor.patch` format.
+  string version = 4;
+}
