@@ -1,5 +1,5 @@
 /*
-Package grpcserver is a generic gRPC server manager
+Package server is a generic gRPC server manager
 Copyright 2018 Portworx
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,8 @@ limitations under the License.
 package server
 
 import (
-	"context"
 	"testing"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -151,20 +149,4 @@ func TestServerStop(t *testing.T) {
 	assert.False(t, s.Server().IsRunning())
 	assert.NotPanics(t, s.Stop)
 	assert.False(t, s.Server().IsRunning())
-}
-
-func TestContextMetadata(t *testing.T) {
-
-	// setup context
-	ctx := AddMetadataToContext(context.Background(), "hello", "world")
-	ctx = AddMetadataToContext(ctx, "jay", "kay")
-	ctx = AddMetadataToContext(ctx, "one", "two")
-
-	// TODO: Replace this manual conversion to an actual grpc call
-	outgoingMd := metautils.ExtractOutgoing(ctx)
-	incomingCtx := outgoingMd.ToIncoming(context.Background())
-
-	assert.Equal(t, GetMetadataValueFromKey(incomingCtx, "hello"), "world")
-	assert.Equal(t, GetMetadataValueFromKey(incomingCtx, "jay"), "kay")
-	assert.Equal(t, GetMetadataValueFromKey(incomingCtx, "one"), "two")
 }
