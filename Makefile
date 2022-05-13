@@ -2,7 +2,11 @@
 HAS_ERRCHECK := $(shell command -v errcheck 2> /dev/null)
 PKGS := $(shell go list ./... | grep -v vendor | grep -v examples)
 
-all:
+all: build
+
+build:
+	@echo ">>> go build"
+	go build $(PKGS)
 
 fmt:
 	@echo ">>> go fmt"
@@ -23,7 +27,7 @@ pr-verify:
 	git-validation -run DCO,short-subject
 	go mod vendor && git grep -rw GPL vendor | grep LICENSE | egrep -v "yaml.v2" | wc -l | grep "^0"
 
-test:
+test: build
 	@echo ">>> go test"
 	go test $(PKGS)
 
