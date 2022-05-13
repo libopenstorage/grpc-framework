@@ -1,4 +1,4 @@
-package correlation_test
+package correlation
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/libopenstorage/grpc-framework/pkg/correlation"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,10 +57,10 @@ func TestNewPackageLogger(t *testing.T) {
 }
 
 func TestFunctionLogger(t *testing.T) {
-	ctx := correlation.WithCorrelationContext(context.Background(), "test_origin")
-	correlation.RegisterComponent("register_comp_test")
+	ctx := WithCorrelationContext(context.Background(), "test_origin")
+	RegisterComponent("register_comp_test")
 
-	clogger := correlation.NewFunctionLogger(ctx)
+	clogger := NewFunctionLogger(ctx)
 	clogger.SetReportCaller(true)
 	var buf bytes.Buffer
 	clogger.SetOutput(&buf)
@@ -89,8 +88,8 @@ func TestRegisterGlobalLogger(t *testing.T) {
 	var buf bytes.Buffer
 	logrus.SetOutput(&buf)
 	logrus.SetReportCaller(true)
-	correlation.RegisterGlobalHook()
-	ctx := correlation.WithCorrelationContext(context.Background(), "test_origin")
+	RegisterGlobalHook()
+	ctx := WithCorrelationContext(context.Background(), "test_origin")
 
 	logrus.WithContext(ctx).Info("test info log")
 	logStr := buf.String()
@@ -107,8 +106,8 @@ func TestRegisterGlobalLogger(t *testing.T) {
 }
 
 func TestWithCorrelationContext(t *testing.T) {
-	ctx := correlation.WithCorrelationContext(context.Background(), "test")
-	cc, ok := ctx.Value(correlation.ContextKey).(*correlation.RequestContext)
+	ctx := WithCorrelationContext(context.Background(), "test")
+	cc, ok := ctx.Value(ContextKey).(*RequestContext)
 	if !ok {
 		t.Error("correlation context not found")
 	}
@@ -117,8 +116,8 @@ func TestWithCorrelationContext(t *testing.T) {
 	assert.NotEmpty(t, id)
 	fmt.Println(id)
 
-	ctx = correlation.WithCorrelationContext(ctx, "test")
-	cc, ok = ctx.Value(correlation.ContextKey).(*correlation.RequestContext)
+	ctx = WithCorrelationContext(ctx, "test")
+	cc, ok = ctx.Value(ContextKey).(*RequestContext)
 	if !ok {
 		t.Error("correlation context not found")
 	}

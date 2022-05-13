@@ -25,7 +25,8 @@ import (
 )
 
 func TestWithDefaultTimeout(t *testing.T) {
-	timeout := Inst().GetDefaultTimeout()
+	orig := Inst().GetDefaultTimeout()
+	timeout := orig
 
 	ctx, _ := WithDefaultTimeout(context.Background())
 	deadline, ok := ctx.Deadline()
@@ -34,7 +35,8 @@ func TestWithDefaultTimeout(t *testing.T) {
 	assert.True(t, deadline.Before(time.Now().Add(timeout)))
 
 	timeout = time.Hour
-	defaultcontext.Inst().SetDefaultTimeout(time.Hour)
+	Inst().SetDefaultTimeout(time.Hour)
+	defer Inst().SetDefaultTimeout(orig)
 	ctx, _ = WithDefaultTimeout(context.Background())
 	deadline, ok = ctx.Deadline()
 	assert.True(t, ok)

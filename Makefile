@@ -5,15 +5,18 @@ PKGS := $(shell go list ./... | grep -v vendor | grep -v examples)
 all:
 
 fmt:
-	go fmt $(PKGS) | grep -v "api.pb.go" | wc -l | grep "^0";
+	@echo ">>> go fmt"
+	go fmt $(PKGS) | wc -l | xargs | grep "^0"
 
 vet:
-	go vet $(PKGS)
+	@echo ">>> go vet"
+	@go vet $(PKGS)
 
 errcheck:
 ifndef HAS_ERRCHECK
 	-GO111MODULE=off go get -u github.com/kisielk/errcheck
 endif
+	@echo ">>> errcheck"
 	errcheck $(PKGS)
 
 pr-verify:
@@ -21,6 +24,7 @@ pr-verify:
 	go mod vendor && git grep -rw GPL vendor | grep LICENSE | egrep -v "yaml.v2" | wc -l | grep "^0"
 
 test:
+	@echo ">>> go test"
 	go test $(PKGS)
 
 verify: vet fmt test
