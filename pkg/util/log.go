@@ -1,5 +1,4 @@
 /*
-Package sdk is the gRPC implementation of the SDK gRPC server
 Copyright 2022 Pure Storage
 
 Licensed under the Apache License, Version 2.0 (the "License");
