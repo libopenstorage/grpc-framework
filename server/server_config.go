@@ -128,6 +128,9 @@ var (
 )
 
 func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server)) *ServerConfig {
+	if c == nil {
+		return c
+	}
 	c.GrpcServerExtensions = append(c.GrpcServerExtensions, handlers)
 	return c
 }
@@ -135,19 +138,37 @@ func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server
 func (c *ServerConfig) RegisterRestHandlers(
 	handlers ...func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error,
 ) *ServerConfig {
+	if c == nil {
+		return c
+	}
 	c.RestServerExtensions = append(c.RestServerExtensions, handlers...)
 	return c
 }
 
+func (c *ServerConfig) WithRestCors(co cors.Options) *ServerConfig {
+	if c == nil {
+		return c
+	}
+	c.RestConfig.CorsOptions.Enabled = true
+	c.RestConfig.CorsOptions.CustomOptions = &co
+	return c
+}
+
+func (c *ServerConfig) WithRestPrometheus(path string) *ServerConfig {
+	if c == nil {
+		return c
+	}
+	c.RestConfig.PrometheusConfig.Enabled = true
+	c.RestConfig.PrometheusConfig.Path = path
+	return c
+}
+
 func (c *ServerConfig) WithDefaultRestServer(port string) *ServerConfig {
+	if c == nil {
+		return c
+	}
 
 	c.RestConfig.Port = port
-
 	c.RestConfig.Enabled = true
-	c.RestConfig.CorsOptions.Enabled = true
-	c.RestConfig.CorsOptions.CustomOptions = &DefaultRestServerCors
-	c.RestConfig.PrometheusConfig.Enabled = true
-	c.RestConfig.PrometheusConfig.Path = "/metrics"
-
-	return c
+	return c.WithRestCors(DefaultRestServerCors).WithRestPrometheus("/metrics")
 }

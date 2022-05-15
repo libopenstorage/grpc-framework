@@ -175,3 +175,7 @@ func (s *Server) UdsAddress() string {
 func (s *Server) GrpcPort() string {
 	return s.grpcPort
 }
+
+func (s *Server) RestPort() string {
+	return s.config.RestConfig.Port
+}

@@ -21,10 +21,9 @@ import (
 type GrpcFrameworkServer struct {
 	*grpcserver.GrpcServer
 
-	restPort string
-	lock     sync.RWMutex
-	name     string
-	config   ServerConfig
+	lock   sync.RWMutex
+	name   string
+	config ServerConfig
 
 	// Loggers
 	log             *logrus.Entry
@@ -146,13 +145,13 @@ func (s *GrpcFrameworkServer) Start() error {
 	err := s.GrpcServer.StartWithServer(func() *grpc.Server {
 		grpcServer := grpc.NewServer(opts...)
 
-		// Register stats for all the services
-		s.registerPrometheusMetrics(grpcServer)
-
 		// Register gRPC Handlers
 		for _, ext := range s.config.GrpcServerExtensions {
 			ext(grpcServer)
 		}
+
+		// Register stats for all the services
+		s.registerPrometheusMetrics(grpcServer)
 
 		return grpcServer
 	})

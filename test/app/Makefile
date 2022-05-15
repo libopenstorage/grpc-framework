@@ -20,8 +20,8 @@ proto:
 		-v $(shell pwd):/go/src/code \
 		-e "GOPATH=/go" \
 		-e "DOCKER_PROTO=yes" \
-		-e "PROTO_USER=$(id -u)" \
-		-e "PROTO_GROUP=$(id -g)" \
+		-e "PROTO_USER=$(shell id -u)" \
+		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
 		quay.io/openstorage/grpc-framework \
 			make docker-proto
