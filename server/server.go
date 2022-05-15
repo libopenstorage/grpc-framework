@@ -56,7 +56,7 @@ var _ grpcserver.Server = &GrpcFrameworkServer{}
 func New(config *ServerConfig) (*Server, error) {
 
 	if config == nil {
-		return nil, fmt.Errorf("Must provide configuration")
+		return nil, fmt.Errorf("must provide configuration")
 	}
 
 	// If no security set, initialize the object as empty
@@ -66,11 +66,8 @@ func New(config *ServerConfig) (*Server, error) {
 
 	// Check if the socket is provided to enable the REST gateway to communicate
 	// to the unix domain socket
-	if len(config.Socket) == 0 {
-		return nil, fmt.Errorf("Must provide unix domain socket for SDK")
-	}
-	if len(config.RestPort) == 0 {
-		return nil, fmt.Errorf("Must provide REST Gateway port for the SDK")
+	if len(config.RestConfig.Port) != 0 && len(config.Socket) == 0 {
+		return nil, fmt.Errorf("must provide unix domain socket for REST server to communicate with gRPC server")
 	}
 
 	// Set default log locations
@@ -95,8 +92,9 @@ func New(config *ServerConfig) (*Server, error) {
 
 	_, port, err := net.SplitHostPort(config.Address)
 	if err != nil {
-		logrus.Warnf("SDK Address NOT in host:port format, failed to get port %v", err.Error())
+		logrus.Warnf("grpc-framework Address NOT in host:port format, failed to get port %v", err.Error())
 	}
+
 	// Create a gRPC server on the network
 	netServer, err := NewGrpcFrameworkServer(config)
 	if err != nil {
@@ -104,18 +102,26 @@ func New(config *ServerConfig) (*Server, error) {
 	}
 
 	// Create a gRPC server on a unix domain socket
-	udsConfig := *config
-	udsConfig.Net = "unix"
-	udsConfig.Address = config.Socket
-	udsServer, err := NewGrpcFrameworkServer(&udsConfig)
-	if err != nil {
-		return nil, err
+	var udsServer *GrpcFrameworkServer
+	if config.Net != "unix" {
+		udsConfig := *config
+		udsConfig.Net = "unix"
+		udsConfig.Address = config.Socket
+		udsServer, err = NewGrpcFrameworkServer(&udsConfig)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		udsServer = netServer
 	}
 
 	// Create REST Gateway and connect it to the unix domain socket server
-	restGateway, err := NewRestGateway(config, udsServer)
-	if err != nil {
-		return nil, err
+	var restGateway *RestGateway
+	if config.RestConfig.Enabled {
+		restGateway, err = NewRestGateway(config, udsServer)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Server{

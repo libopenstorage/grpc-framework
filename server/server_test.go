@@ -45,12 +45,12 @@ func (s *testServer) Conn() *grpc.ClientConn {
 func newDefaultTestServer(t *testing.T) *testServer {
 
 	config := &ServerConfig{
-		Name:     "testServer",
-		Net:      "tcp",
-		Address:  "127.0.0.1:0",
-		RestPort: "9001",
-		Socket:   "/tmp/grpc-framework-testServer.sock",
+		Name:    "testServer",
+		Net:     "tcp",
+		Address: "127.0.0.1:0",
+		Socket:  "/tmp/grpc-framework-testServer.sock",
 	}
+	config.WithDefaultRestServer("9001")
 
 	return newTestServer(t, config)
 }

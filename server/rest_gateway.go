@@ -33,7 +33,6 @@ import (
 
 type RestGateway struct {
 	config     ServerConfig
-	restPort   string
 	grpcServer *GrpcFrameworkServer
 	server     *http.Server
 }
@@ -41,7 +40,6 @@ type RestGateway struct {
 func NewRestGateway(config *ServerConfig, grpcServer *GrpcFrameworkServer) (*RestGateway, error) {
 	return &RestGateway{
 		config:     *config,
-		restPort:   config.RestPort,
 		grpcServer: grpcServer,
 	}, nil
 }
@@ -53,7 +51,7 @@ func (s *RestGateway) Start() error {
 	}
 
 	// Create object here so that we can access its Close receiver.
-	address := ":" + s.restPort
+	address := ":" + s.config.RestConfig.Port
 	s.server = &http.Server{
 		Addr:    address,
 		Handler: mux,
@@ -77,7 +75,7 @@ func (s *RestGateway) Start() error {
 		}
 	}()
 	<-ready
-	logrus.Infof("SDK gRPC REST Gateway started on port :%s", s.restPort)
+	logrus.Infof("SDK gRPC REST Gateway started on port :%s", s.config.RestConfig.Port)
 
 	return nil
 }
@@ -120,7 +118,13 @@ func (s *RestGateway) restServerSetupHandlers() (http.Handler, error) {
 		http.StripPrefix(prefix, http.FileServer(swaggerUIBox)))
 	*/
 
-	mux.Handle("/metrics", promhttp.Handler())
+	if s.config.RestConfig.PrometheusConfig.Enabled {
+		if s.config.RestConfig.PrometheusConfig.Path == "" {
+			logrus.Warn("REST Prometheus path missing; skipping")
+		} else {
+			mux.Handle(s.config.RestConfig.PrometheusConfig.Path, promhttp.Handler())
+		}
+	}
 
 	// Create a router just for HTTP REST gRPC Server Gateway
 	gmux := runtime.NewServeMux()
@@ -148,11 +152,15 @@ func (s *RestGateway) restServerSetupHandlers() (http.Handler, error) {
 	mux.Handle("/", gmux)
 
 	// Enable cors
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "HEAD", "PUT", "OPTIONS"},
-		AllowCredentials: true,
-	})
-	cmux := c.Handler(mux)
-	return cmux, nil
+	if s.config.RestConfig.CorsOptions.Enabled {
+		if s.config.RestConfig.CorsOptions.CustomOptions == nil {
+			logrus.Warn("REST Cors configuration missing; skipping")
+		} else {
+			c := cors.New(*s.config.RestConfig.CorsOptions.CustomOptions)
+			cmux := c.Handler(mux)
+			return cmux, nil
+		}
+	}
+
+	return mux, nil
 }

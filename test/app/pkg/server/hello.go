@@ -46,9 +46,9 @@ func (h *HelloGreeter) Version(
 	logrus.Info("Received request for version")
 	return &api.HelloIdentityVersionResponse{
 		HelloVersion: &api.HelloVersion{
-			Major: 1,
-			Minor: 2,
-			Patch: 3,
+			Major: int32(api.HelloVersion_MAJOR),
+			Minor: int32(api.HelloVersion_MINOR),
+			Patch: int32(api.HelloVersion_PATCH),
 			Version: fmt.Sprintf("%d.%d.%d",
 				api.HelloVersion_MAJOR,
 				api.HelloVersion_MINOR,

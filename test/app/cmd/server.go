@@ -35,11 +35,11 @@ const (
 func main() {
 	hello := &helloserver.HelloGreeter{}
 	config := &server.ServerConfig{
-		Name:     "hello",
-		Address:  "127.0.0.1:9009",
-		RestPort: "9010",
-		Socket:   helloSocket,
+		Name:    "hello",
+		Address: "127.0.0.1:9009",
+		Socket:  helloSocket,
 	}
+	config.WithDefaultRestServer("9010")
 
 	config.RegisterGrpcServers(func(gs *grpc.Server) {
 		api.RegisterHelloGreeterServer(gs, hello)

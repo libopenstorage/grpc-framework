@@ -23,6 +23,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/role"
+	"github.com/rs/cors"
 	"google.golang.org/grpc"
 )
 
@@ -49,6 +50,27 @@ type SecurityConfig struct {
 	Authenticators map[string]auth.Authenticator
 }
 
+type RestServerPrometheusConfig struct {
+	Enabled bool
+
+	// Defaults to `/metrics` if not provided
+	Path string
+}
+
+type RestServerCorsConfig struct {
+	Enabled bool
+
+	// If not set, the framework will set up the cors
+	CustomOptions *cors.Options
+}
+
+type RestServerConfig struct {
+	Enabled          bool
+	Port             string
+	CorsOptions      RestServerCorsConfig
+	PrometheusConfig RestServerPrometheusConfig
+}
+
 // ServerConfig provides the configuration to the SDK server
 type ServerConfig struct {
 	// Name of the server
@@ -59,9 +81,8 @@ type ServerConfig struct {
 	// Address is the port number or the unix domain socket path.
 	// For the gRPC Server. This value goes together with `Net`.
 	Address string
-	// RestAdress is the port number. Example: 9110
-	// For the gRPC REST Gateway.
-	RestPort string
+	// REST server configuration
+	RestConfig RestServerConfig
 	// Unix domain socket for local communication. This socket
 	// will be used by the REST Gateway to communicate with the gRPC server.
 	// Only set for testing. Having a '%s' can be supported to use the
@@ -74,8 +95,6 @@ type ServerConfig struct {
 	// This is useful when authorization is not running.
 	// If not provided, it will go to /var/log/grpc-framework-access.log
 	AccessOutput io.Writer
-	// (optional) The OpenStorage driver to use
-	DriverName string
 	// Security configuration
 	Security *SecurityConfig
 	// ServerExtensions allows you to extend the SDK gRPC server
@@ -100,12 +119,35 @@ type ServerConfig struct {
 	RestServerExtensions []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error
 }
 
-func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server)) {
+var (
+	DefaultRestServerCors = cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "HEAD", "PUT", "OPTIONS"},
+		AllowCredentials: true,
+	}
+)
+
+func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server)) *ServerConfig {
 	c.GrpcServerExtensions = append(c.GrpcServerExtensions, handlers)
+	return c
 }
 
 func (c *ServerConfig) RegisterRestHandlers(
 	handlers ...func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error,
-) {
+) *ServerConfig {
 	c.RestServerExtensions = append(c.RestServerExtensions, handlers...)
+	return c
+}
+
+func (c *ServerConfig) WithDefaultRestServer(port string) *ServerConfig {
+
+	c.RestConfig.Port = port
+
+	c.RestConfig.Enabled = true
+	c.RestConfig.CorsOptions.Enabled = true
+	c.RestConfig.CorsOptions.CustomOptions = &DefaultRestServerCors
+	c.RestConfig.PrometheusConfig.Enabled = true
+	c.RestConfig.PrometheusConfig.Path = "/metrics"
+
+	return c
 }
