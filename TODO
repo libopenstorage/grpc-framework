@@ -1,2 +1,5 @@
 - All errors to start with lowercase
 - Unary/Stream Config interceptor API to add custom versions
+- Rename all authenticator APIs
+- need a NewServerConfig() 
+- copy SDK guidelines
