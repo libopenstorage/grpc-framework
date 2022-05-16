@@ -4,6 +4,15 @@
 //
 // In vim add: au FileType proto setl sw=2 ts=2 expandtab list
 //
+// In vscode add this to your settings.json:
+//    "[proto3]": {
+//        "editor.tabSize": 2,
+//        "editor.insertSpaces": true,
+//        "editor.rulers": [80],
+//        "editor.detectIndentation": true,
+//        "files.trimTrailingWhitespace": true
+//    }
+//
 syntax = "proto3";
 
 import "google/api/annotations.proto";
