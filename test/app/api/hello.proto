@@ -1,10 +1,9 @@
-
-/// Please use the following editor setup for this file:
+// Please use the following editor setup for this file:
 // Tab size=2; Tabs as spaces; Clean up trailing whitepsace
 //
 // In vim add: au FileType proto setl sw=2 ts=2 expandtab list
 //
-// In vscode add this to your settings.json:
+// In vscode install vscode-proto3 extension and add this to your settings.json:
 //    "[proto3]": {
 //        "editor.tabSize": 2,
 //        "editor.insertSpaces": true,
@@ -41,7 +40,7 @@ service HelloIdentity {
       option(google.api.http) = {
         get: "/v1/identity/version"
       };
-    } 
+    }
 }
 
 // The request message containing the user's name.
