@@ -179,3 +179,19 @@ func (s *Server) GrpcPort() string {
 func (s *Server) RestPort() string {
 	return s.config.RestConfig.Port
 }
+
+func (s *Server) Transaction(f func() error) error {
+	if f == nil {
+		return fmt.Errorf("no stransaction provided")
+	}
+	if s.netServer != nil {
+		s.netServer.transactionStart()
+		defer s.netServer.transactionEnd()
+	}
+	if s.udsServer != nil {
+		s.udsServer.transactionStart()
+		defer s.udsServer.transactionEnd()
+	}
+
+	return f()
+}

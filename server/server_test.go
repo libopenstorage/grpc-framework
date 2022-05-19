@@ -16,6 +16,7 @@ limitations under the License.
 package server
 
 import (
+	"fmt"
 	"testing"
 
 	grpcclient "github.com/libopenstorage/grpc-framework/pkg/grpc/client"
@@ -77,4 +78,25 @@ func newTestServer(t *testing.T, config *ServerConfig) *testServer {
 func TestSimpleServer(t *testing.T) {
 	s := newDefaultTestServer(t)
 	defer s.Stop()
+}
+
+func TestSimpleServerLockTest(t *testing.T) {
+	s := newDefaultTestServer(t)
+	defer s.Stop()
+
+	value := 0
+	err := s.server.Transaction(func() error {
+		value = 1
+		return nil
+	})
+	assert.Equal(t, value, 1)
+	assert.NoError(t, err)
+
+	err = s.server.Transaction(func() error {
+		value = 2
+		return fmt.Errorf("ERROR")
+	})
+	assert.Equal(t, value, 2)
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "ERROR")
 }
