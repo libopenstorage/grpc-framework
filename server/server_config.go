@@ -117,6 +117,15 @@ type ServerConfig struct {
 	// to the RestSererExtensions slice. These handlers will be registered on the
 	// REST Gateway http server.
 	RestServerExtensions []func(context.Context, *runtime.ServeMux, *grpc.ClientConn) error
+
+	// UnaryServerInterceptors will be interceptors added to the end of the default chain
+	UnaryServerInterceptors []grpc.UnaryServerInterceptor
+
+	// StreamServerInterceptors will be interceptors added to the end of the default chain
+	StreamServerInterceptors []grpc.StreamServerInterceptor
+
+	// ServerOptions hold any special gRPC server options
+	ServerOptions []grpc.ServerOption
 }
 
 var (
@@ -171,4 +180,31 @@ func (c *ServerConfig) WithDefaultRestServer(port string) *ServerConfig {
 	c.RestConfig.Port = port
 	c.RestConfig.Enabled = true
 	return c.WithRestCors(DefaultRestServerCors).WithRestPrometheus("/metrics")
+}
+
+func (c *ServerConfig) WithServerUnaryInterceptors(i ...grpc.UnaryServerInterceptor) *ServerConfig {
+	if c == nil {
+		return c
+	}
+
+	c.UnaryServerInterceptors = append(c.UnaryServerInterceptors, i...)
+	return c
+}
+
+func (c *ServerConfig) WithServerStreamInterceptors(i ...grpc.StreamServerInterceptor) *ServerConfig {
+	if c == nil {
+		return c
+	}
+
+	c.StreamServerInterceptors = append(c.StreamServerInterceptors, i...)
+	return c
+}
+
+func (c *ServerConfig) WithServerOptions(opt ...grpc.ServerOption) *ServerConfig {
+	if c == nil {
+		return c
+	}
+
+	c.ServerOptions = append(c.ServerOptions, opt...)
+	return c
 }

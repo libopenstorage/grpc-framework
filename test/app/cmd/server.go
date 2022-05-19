@@ -16,6 +16,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -39,17 +40,19 @@ func main() {
 		Address: "127.0.0.1:9009",
 		Socket:  helloSocket,
 	}
-	config.WithDefaultRestServer("9010")
-
-	config.RegisterGrpcServers(func(gs *grpc.Server) {
-		api.RegisterHelloGreeterServer(gs, hello)
-		api.RegisterHelloIdentityServer(gs, hello)
-	})
-
-	config.RegisterRestHandlers(
-		api.RegisterHelloGreeterHandler,
-		api.RegisterHelloIdentityHandler,
-	)
+	config.
+		WithDefaultRestServer("9010").
+		RegisterGrpcServers(func(gs *grpc.Server) {
+			api.RegisterHelloGreeterServer(gs, hello)
+			api.RegisterHelloIdentityServer(gs, hello)
+		}).
+		RegisterRestHandlers(
+			api.RegisterHelloGreeterHandler,
+			api.RegisterHelloIdentityHandler,
+		).
+		WithServerUnaryInterceptors(
+			helloWorldInterceptor,
+		)
 
 	// Create grpc framework server
 	os.Remove(helloSocket)
@@ -77,4 +80,15 @@ func main() {
 	// Wait. The signal handler will exit cleanly
 	logrus.Info("Hello server running")
 	select {}
+}
+
+func helloWorldInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	logrus.Info("In hello world interceptor")
+
+	return handler(ctx, req)
 }

@@ -102,7 +102,7 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 func (s *GrpcFrameworkServer) Start() error {
 
 	// Setup https if certs have been provided
-	opts := make([]grpc.ServerOption, 0)
+	opts := s.config.ServerOptions
 	if s.config.Net != "unix" && s.config.Security.Tls != nil {
 		creds, err := credentials.NewServerTLSFromFile(
 			s.config.Security.Tls.CertFile,
@@ -121,40 +121,54 @@ func (s *GrpcFrameworkServer) Start() error {
 		Origin: correlation.ComponentSDK,
 	}
 
+	var (
+		unaryInterceptors  []grpc.UnaryServerInterceptor
+		streamInterceptors []grpc.StreamServerInterceptor
+	)
+
 	// Setup authentication and authorization using interceptors if auth is enabled
 	if len(s.config.Security.Authenticators) != 0 {
-		opts = append(opts, grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				s.rwlockUnaryIntercepter,
-				correlationInterceptor.ContextUnaryServerInterceptor,
-				grpc_auth.UnaryServerInterceptor(s.auth),
-				s.authorizationServerUnaryInterceptor,
-				s.loggerServerUnaryInterceptor,
-				grpc_prometheus.UnaryServerInterceptor,
-			)))
-		opts = append(opts, grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(
-				s.rwlockStreamIntercepter,
-				grpc_auth.StreamServerInterceptor(s.auth),
-				s.authorizationServerStreamInterceptor,
-				s.loggerServerStreamInterceptor,
-				grpc_prometheus.StreamServerInterceptor,
-			)))
+		// Setup default security interceptors
+		unaryInterceptors = []grpc.UnaryServerInterceptor{
+			s.rwlockUnaryIntercepter,
+			correlationInterceptor.ContextUnaryServerInterceptor,
+			grpc_auth.UnaryServerInterceptor(s.auth),
+			s.authorizationServerUnaryInterceptor,
+			s.loggerServerUnaryInterceptor,
+			grpc_prometheus.UnaryServerInterceptor,
+		}
+		streamInterceptors = []grpc.StreamServerInterceptor{
+			s.rwlockStreamIntercepter,
+			grpc_auth.StreamServerInterceptor(s.auth),
+			s.authorizationServerStreamInterceptor,
+			s.loggerServerStreamInterceptor,
+			grpc_prometheus.StreamServerInterceptor,
+		}
 	} else {
-		opts = append(opts, grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(
-				s.rwlockUnaryIntercepter,
-				correlationInterceptor.ContextUnaryServerInterceptor,
-				s.loggerServerUnaryInterceptor,
-				grpc_prometheus.UnaryServerInterceptor,
-			)))
-		opts = append(opts, grpc.StreamInterceptor(
-			grpc_middleware.ChainStreamServer(
-				s.rwlockStreamIntercepter,
-				s.loggerServerStreamInterceptor,
-				grpc_prometheus.StreamServerInterceptor,
-			)))
+		// Setup default interceptors
+		unaryInterceptors = []grpc.UnaryServerInterceptor{
+			s.rwlockUnaryIntercepter,
+			correlationInterceptor.ContextUnaryServerInterceptor,
+			s.loggerServerUnaryInterceptor,
+			grpc_prometheus.UnaryServerInterceptor,
+		}
+		streamInterceptors = []grpc.StreamServerInterceptor{
+			s.rwlockStreamIntercepter,
+			s.loggerServerStreamInterceptor,
+			grpc_prometheus.StreamServerInterceptor,
+		}
 	}
+
+	// Append custom interceptors to the end of the chain
+	unaryInterceptors = append(unaryInterceptors, s.config.UnaryServerInterceptors...)
+	streamInterceptors = append(streamInterceptors, s.config.StreamServerInterceptors...)
+
+	opts = append(opts, grpc.UnaryInterceptor(
+		grpc_middleware.ChainUnaryServer(unaryInterceptors...),
+	))
+	opts = append(opts, grpc.StreamInterceptor(
+		grpc_middleware.ChainStreamServer(streamInterceptors...),
+	))
 
 	// Start the gRPC Server
 	err := s.GrpcServer.StartWithServer(func() *grpc.Server {
@@ -185,4 +199,12 @@ func (s *GrpcFrameworkServer) registerPrometheusMetrics(grpcServer *grpc.Server)
 	// Initialize the metrics
 	grpcMetrics := grpc_prometheus.NewServerMetrics()
 	grpcMetrics.InitializeMetrics(grpcServer)
+}
+
+func (s *GrpcFrameworkServer) transactionStart() {
+	s.lock.Lock()
+}
+
+func (s *GrpcFrameworkServer) transactionEnd() {
+	s.lock.Unlock()
 }
