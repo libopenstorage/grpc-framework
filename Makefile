@@ -37,3 +37,7 @@ testapp:
 verify: vet fmt test testapp
 
 travis-verify: pr-verify verify
+
+# Run this after creating and pushing a release tag into the repo
+go-mod-publish:
+	GOPROXY=proxy.golang.org go list -m github.com/libopenstorage/grpc-framework@$(shell git describe --tags)
