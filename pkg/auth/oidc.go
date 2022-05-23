@@ -54,7 +54,7 @@ type OIDCAuthenticator struct {
 }
 
 // NewOIDC returns a new OIDC authenticator
-func NewOIDC(config *OIDCAuthConfig) (*OIDCAuthenticator, error) {
+func NewOIDCAuthenticator(config *OIDCAuthConfig) (*OIDCAuthenticator, error) {
 	// Reverting the defaultTimeout base context as some of the coreos oidc api
 	// takes this context for subsequent call and end up using expired context.
 	ctx := context.Background()

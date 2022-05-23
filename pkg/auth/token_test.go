@@ -70,7 +70,7 @@ func TestTokenSharedSecretSimple(t *testing.T) {
 	assert.True(t, IsJwtToken(rawtoken))
 
 	// Test authenticators
-	authctr, err := NewJwtAuth(&JwtAuthConfig{
+	authctr, err := NewJwtAuthenticator(&JwtAuthConfig{
 		SharedSecret:  key,
 		UsernameClaim: UsernameClaimTypeDefault,
 	})

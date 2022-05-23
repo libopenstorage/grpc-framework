@@ -48,7 +48,7 @@ type JwtAuthenticator struct {
 }
 
 // New returns a JwtAuthenticator
-func NewJwtAuth(config *JwtAuthConfig) (*JwtAuthenticator, error) {
+func NewJwtAuthenticator(config *JwtAuthConfig) (*JwtAuthenticator, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("Must provide configuration")
