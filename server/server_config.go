@@ -25,6 +25,8 @@ import (
 	"github.com/libopenstorage/grpc-framework/pkg/role"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
+
+	"golang.org/x/time/rate"
 )
 
 // TLSConfig points to the cert files needed for HTTPS
@@ -71,6 +73,11 @@ type RestServerConfig struct {
 	PrometheusConfig RestServerPrometheusConfig
 }
 
+type RateLimiterConfig struct {
+	RateLimiter        RateLimiter
+	RateLimiterPerUser RateLimiter
+}
+
 // ServerConfig provides the configuration to the SDK server
 type ServerConfig struct {
 	// Name of the server
@@ -97,6 +104,9 @@ type ServerConfig struct {
 	AccessOutput io.Writer
 	// Security configuration
 	Security *SecurityConfig
+	// RateLimiters provide caller with the ability to setup rate limits for
+	// the gRPC server
+	RateLimiters RateLimiterConfig
 	// ServerExtensions allows you to extend the SDK gRPC server
 	// with callback functions that are sequentially executed
 	// at the end of Server.Start()
@@ -134,6 +144,8 @@ var (
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "HEAD", "PUT", "OPTIONS"},
 		AllowCredentials: true,
 	}
+	DefaultRateLimiter        = rate.NewLimiter(100, 50)
+	DefaultRateLimiterPerUser = rate.NewLimiter(10, 25)
 )
 
 func (c *ServerConfig) RegisterGrpcServers(handlers func(grpcServer *grpc.Server)) *ServerConfig {
@@ -207,4 +219,28 @@ func (c *ServerConfig) WithServerOptions(opt ...grpc.ServerOption) *ServerConfig
 
 	c.ServerOptions = append(c.ServerOptions, opt...)
 	return c
+}
+
+func (c *ServerConfig) WithRateLimiter(r RateLimiter) *ServerConfig {
+	if c == nil {
+		return c
+	}
+
+	c.RateLimiters.RateLimiter = r
+	return c
+}
+
+func (c *ServerConfig) WithRateLimiterPerUser(r RateLimiter) *ServerConfig {
+	if c == nil {
+		return c
+	}
+
+	c.RateLimiters.RateLimiterPerUser = r
+	return c
+}
+
+func (c *ServerConfig) WithDefaultRateLimiters() *ServerConfig {
+	return c.
+		WithRateLimiter(DefaultRateLimiter).
+		WithRateLimiterPerUser(DefaultRateLimiterPerUser)
 }

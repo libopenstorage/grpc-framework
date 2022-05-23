@@ -16,6 +16,7 @@ limitations under the License.
 package server
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sync"
@@ -30,7 +31,10 @@ import (
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/tap"
 )
 
 type GrpcFrameworkServer struct {
@@ -170,6 +174,11 @@ func (s *GrpcFrameworkServer) Start() error {
 		grpc_middleware.ChainStreamServer(streamInterceptors...),
 	))
 
+	// Determine if we should add rate limiters
+	if s.config.RateLimiters.RateLimiter != nil || s.config.RateLimiters.RateLimiterPerUser != nil {
+		opts = append(opts, grpc.InTapHandle(s.rateLimiter))
+	}
+
 	// Start the gRPC Server
 	err := s.GrpcServer.StartWithServer(func() *grpc.Server {
 		grpcServer := grpc.NewServer(opts...)
@@ -207,4 +216,28 @@ func (s *GrpcFrameworkServer) transactionStart() {
 
 func (s *GrpcFrameworkServer) transactionEnd() {
 	s.lock.Unlock()
+}
+
+func (s *GrpcFrameworkServer) globalLimiterAllow() bool {
+	// Check if there is no limiter. If none, allow all
+	if s.config.RateLimiters.RateLimiter == nil {
+		return true
+	}
+	return s.config.RateLimiters.RateLimiter.Allow()
+}
+
+func (s *GrpcFrameworkServer) rateLimiter(
+	ctx context.Context,
+	info *tap.Info,
+) (context.Context, error) {
+
+	// Check global limiter
+	if !s.globalLimiterAllow() {
+		return nil, status.Error(codes.ResourceExhausted, "resources for clients exhausted")
+	}
+
+	// Check per user limiter
+	// XXX TODO
+
+	return ctx, nil
 }
