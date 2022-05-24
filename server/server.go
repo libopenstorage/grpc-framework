@@ -103,7 +103,7 @@ func New(config *ServerConfig) (*Server, error) {
 
 	// Create a gRPC server on a unix domain socket
 	var udsServer *GrpcFrameworkServer
-	if config.Net != "unix" {
+	if config.Net != "unix" && config.Socket != "" {
 		udsConfig := *config
 		udsConfig.Net = "unix"
 		udsConfig.Address = config.Socket
@@ -111,8 +111,6 @@ func New(config *ServerConfig) (*Server, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		udsServer = netServer
 	}
 
 	// Create REST Gateway and connect it to the unix domain socket server
@@ -137,25 +135,38 @@ func New(config *ServerConfig) (*Server, error) {
 
 // Start all servers
 func (s *Server) Start() error {
-	if err := s.netServer.Start(); err != nil {
-		return err
-	} else if err := s.udsServer.Start(); err != nil {
-		s.netServer.Stop()
-		return err
-	} else if err := s.restGateway.Start(); err != nil {
-		s.netServer.Stop()
-		s.udsServer.Stop()
-		return err
+	if s.netServer != nil {
+		if err := s.netServer.Start(); err != nil {
+			return err
+		}
+	}
+	if s.udsServer != nil {
+		if err := s.udsServer.Start(); err != nil {
+			s.Stop()
+			return err
+		}
+
+	}
+	if s.restGateway != nil {
+		if err := s.restGateway.Start(); err != nil {
+			s.Stop()
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (s *Server) Stop() {
-	s.netServer.Stop()
-	s.udsServer.Stop()
-	s.restGateway.Stop()
-
+	if s.netServer != nil {
+		s.netServer.Stop()
+	}
+	if s.udsServer != nil {
+		s.udsServer.Stop()
+	}
+	if s.restGateway != nil {
+		s.restGateway.Stop()
+	}
 	if s.accessLog != nil {
 		s.accessLog.Close()
 	}
