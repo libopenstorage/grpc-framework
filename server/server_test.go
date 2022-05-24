@@ -103,6 +103,50 @@ func TestSimpleServer(t *testing.T) {
 	defer s.Stop()
 }
 
+func TestServerWithoutRest(t *testing.T) {
+	config := &ServerConfig{
+		Name:    "testServer",
+		Net:     "tcp",
+		Address: "127.0.0.1:0",
+		Socket:  grpcSocket,
+	}
+
+	s := newTestServer(t, config)
+	assert.Nil(t, s.server.restGateway)
+	assert.NotNil(t, s.server.udsServer)
+	assert.NotNil(t, s.server.netServer)
+	defer s.Stop()
+}
+
+func TestServerWithoutUdsAndRest(t *testing.T) {
+	config := &ServerConfig{
+		Name:    "testServer",
+		Net:     "tcp",
+		Address: "127.0.0.1:0",
+	}
+
+	s := newTestServer(t, config)
+	assert.Nil(t, s.server.restGateway)
+	assert.Nil(t, s.server.udsServer)
+	assert.NotNil(t, s.server.netServer)
+	defer s.Stop()
+}
+
+func TestServerErrorWhenRestWithoutUds(t *testing.T) {
+	config := &ServerConfig{
+		Name:    "testServer",
+		Net:     "tcp",
+		Address: "127.0.0.1:0",
+	}
+	config.WithDefaultRestServer("9001").
+		RegisterGrpcServers(func(gs *grpc.Server) {
+			appapi.RegisterHelloGreeterServer(gs, &appserver.HelloGreeter{})
+		})
+	_, err := New(config)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "must provide unix domain socket for REST")
+}
+
 func TestSimpleServerLockTest(t *testing.T) {
 	s := newDefaultTestServer(t)
 	defer s.Stop()
