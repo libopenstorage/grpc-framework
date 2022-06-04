@@ -3,3 +3,6 @@
 - Rename all authenticator APIs
 - need a NewServerConfig() 
 - copy SDK guidelines
+- add ratelimiter per user
+- future: add ratelimiter priority queue
+
