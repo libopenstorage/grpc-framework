@@ -36,9 +36,11 @@ const (
 func main() {
 	hello := &helloserver.HelloGreeter{}
 	config := &server.ServerConfig{
-		Name:    "hello",
-		Address: "127.0.0.1:9009",
-		Socket:  helloSocket,
+		Name:         "hello",
+		Address:      "127.0.0.1:9009",
+		Socket:       helloSocket,
+		AuditOutput:  os.Stdout,
+		AccessOutput: os.Stdout,
 	}
 	config.
 		WithDefaultRestServer("9010").
