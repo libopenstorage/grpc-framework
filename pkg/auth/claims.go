@@ -78,3 +78,7 @@ func validateUsername(usernameClaim UsernameClaimType, claims *Claims) error {
 
 	return nil
 }
+
+func hello() string {
+	return "hello"
+}

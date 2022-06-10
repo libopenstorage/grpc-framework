@@ -1,4 +1,4 @@
-
+# I have added a comment
 HAS_ERRCHECK := $(shell command -v errcheck 2> /dev/null)
 PKGS := $(shell go list ./... | grep -v vendor | grep -v examples)
 
