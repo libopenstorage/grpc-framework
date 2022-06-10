@@ -69,12 +69,12 @@ func (s *RestGateway) Start() error {
 		if err == http.ErrServerClosed || err == nil {
 			return
 		} else {
-			logrus.Fatalf("Unable to start SDK REST gRPC Gateway: %s\n",
+			logrus.Fatalf("Unable to start REST gRPC Gateway: %s\n",
 				err.Error())
 		}
 	}()
 	<-ready
-	logrus.Infof("SDK gRPC REST Gateway started on port :%s", s.config.RestConfig.Port)
+	logrus.Infof("gRPC REST Gateway started on port :%s", s.config.RestConfig.Port)
 
 	return nil
 }

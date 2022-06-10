@@ -139,7 +139,7 @@ func (j *JwtAuthenticator) AuthenticateToken(ctx context.Context, rawtoken strin
 	var sdkClaims Claims
 	err = json.Unmarshal(claimBytes, &sdkClaims)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get sdkclaims: %v", err)
+		return nil, fmt.Errorf("Unable to get claims: %v", err)
 	}
 
 	if err := validateUsername(j.usernameClaim, &sdkClaims); err != nil {
