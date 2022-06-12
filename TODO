@@ -1,8 +1,9 @@
 - All errors to start with lowercase
 - Unary/Stream Config interceptor API to add custom versions
 - Rename all authenticator APIs
-- need a NewServerConfig() 
+- need a NewServerConfig()
 - copy SDK guidelines
 - add ratelimiter per user
 - future: add ratelimiter priority queue
+- remove system tokens
 
