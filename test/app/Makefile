@@ -30,35 +30,5 @@ docker-proto:
 ifndef DOCKER_PROTO
 	$(error Do not run directly. Run 'make proto' instead.)
 endif
-	bash -x $(PROTOSRC_PATH)/grpcfw ./api/hello.proto
+	grpcfw ./api/hello.proto
 
-mydocker-proto:
-ifndef DOCKER_PROTO
-	$(error Do not run directly. Run 'make proto' instead.)
-endif
-	@echo ">>> Generating protobuf definitions"
-	$(PROTOC) -I $(PROTOSRC_PATH) \
-		-I /usr/local/include \
-		-I $(PROTOS_PATH)/github.com/grpc-ecosystem/grpc-gateway \
-		-I $(PROTOS_PATH)/github.com/googleapis/googleapis \
-		--go_out=. \
-		--go_opt=paths=source_relative \
-		--go-grpc_out=. \
-		--go-grpc_opt=paths=source_relative \
-		$(PROTO_FILE)
-	$(PROTOC) -I $(PROTOSRC_PATH) \
-		-I /usr/local/include \
-		-I $(PROTOS_PATH)/github.com/grpc-ecosystem/grpc-gateway \
-		-I $(PROTOS_PATH)/github.com/googleapis/googleapis \
-		--grpc-gateway_out=logtostderr=true:. \
-		$(PROTO_FILE)
-	$(PROTOC) -I $(PROTOSRC_PATH) \
-		-I /usr/local/include \
-		-I $(PROTOS_PATH)/github.com/grpc-ecosystem/grpc-gateway \
-		-I $(PROTOS_PATH)/github.com/googleapis/googleapis \
-		--openapiv2_out=logtostderr=true:. \
-		$(PROTO_FILE)
-	@echo ">>> Upgrading swagger 2.0 to openapi 3.0"
-	mv api/hello.swagger.json api/20hello.swagger.json
-	swagger2openapi api/20hello.swagger.json -o api/hello.swagger.json
-	rm -f api/20hello.swagger.json
