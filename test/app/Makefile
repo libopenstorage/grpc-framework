@@ -1,10 +1,6 @@
 
 PROTO_FILE = ./api/hello.proto
 
-PROTOC = protoc
-PROTOS_PATH = $(GOPATH)/src
-PROTOSRC_PATH = .
-
 all: proto server
 
 server:
@@ -30,5 +26,5 @@ docker-proto:
 ifndef DOCKER_PROTO
 	$(error Do not run directly. Run 'make proto' instead.)
 endif
-	grpcfw ./api/hello.proto
+	grpcfw $(PROTO_FILE)
 
