@@ -18,18 +18,19 @@ RUN apt-get -y -qq install \
 	rubygems \
 	nodejs \
 	make \
-	git 
+	git
 RUN gem install grpc && gem install grpc-tools
-
-#RUN GO111MODULE=off go get -u github.com/golang/protobuf/protoc-gen-go && \
-#	go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger && \
-#       GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 RUN go install \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.10.0 \
     github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.10.0
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.0
-RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@1.2
+
+
+# From https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+
+# From https://pkg.go.dev/google.golang.org/grpc
+RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 # Get the proto files from the grpc-gateway
 RUN mkdir -p /go/src/github.com/grpc-ecosystem && \
@@ -43,6 +44,8 @@ RUN mkdir -p /go/src/github.com/googleapis && \
 
 # Install swagger 2.0 to OpenApi 3.0 converter
 RUN npm install -g swagger2openapi
+# Install tools
+ADD ./tools/* /usr/local/bin
 
 # Finally, set working directory
 RUN mkdir -p /go/src/code
