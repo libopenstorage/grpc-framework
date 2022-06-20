@@ -35,7 +35,7 @@ func (h *HelloGreeter) SayHello(
 	logrus.Info("Received a request in SayHello()")
 
 	return &api.HelloGreeterSayHelloResponse{
-		Message: "Here",
+		Message: fmt.Sprintf("Hello, %s", req.GetName()),
 	}, nil
 }
 

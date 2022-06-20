@@ -1,11 +1,15 @@
 
 PROTO_FILE = ./api/hello.proto
 
-all: proto server
+all: proto server client
 
 server:
 	-mkdir ./bin > /dev/null 2>&1
 	go build -o ./bin/server cmd/server.go
+
+client:
+	-mkdir ./bin > /dev/null 2>&1
+	go build -o ./bin/client cmd/client/client.go
 
 clean:
 	rm -rf ./bin
