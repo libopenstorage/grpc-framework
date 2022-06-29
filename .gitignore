@@ -3,3 +3,4 @@ test/app/bin
 .vscode
 client
 server
+venv

@@ -4,4 +4,8 @@
 This framework makes it simple for developers to add gRPC and automated REST
 interfaces for their applications.
 
-* We are working on tutorials and API documentation to make it easier to use. 
+Please see our [Documentation](https://libopenstorage.github.io/grpc-framework) for
+more information.
+
+* FYI, we are in the process of creating tutorials and adding more documentation
+to the framework
