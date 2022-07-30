@@ -1,0 +1,75 @@
+/// Please use the following editor setup for this file:
+// Tab size=2; Tabs as spaces; Clean up trailing whitepsace
+//
+// In vim add: au FileType proto setl sw=2 ts=2 expandtab list
+//
+// Note, the documentation provided here for can be created in
+// markdown format plus the use of 'codetabs' are supported. The documentation
+// will then be rendered by github.com/openstoreage/libopenstoreage.github.io and
+// provided on https://libopenstorage.github.io
+//
+syntax = "proto3";
+
+package ownership;
+
+option go_package = "./ownership;ownership";
+
+// Ownership information for resource.
+// Administrators are users who belong to the group `*`, meaning, every group.
+message Ownership {
+
+  // Access types can be set by owner to have different levels of access to
+  // a resource.
+  //
+  // It is up to the resource to interpret what the types mean and are
+  // used for.
+  enum AccessType {
+    // Read access only and cannot affect the resource.
+    Read = 0;
+    // Write access and can affect the resource.
+    // This type automatically provides Read access also.
+    Write = 1;
+    // Administrator access.
+    // This type automatically provides Read and Write access also.
+    Admin = 2;
+  }
+  // PublicAccessControl allows assigning public ownership
+  message PublicAccessControl {
+    // AccessType declares which level of public access is allowed
+    AccessType type = 1;
+  }
+
+  message AccessControl {
+    // Group access to resource which must match the group set in the
+    // authorization token.
+    // Can be set by the owner or the system administrator only.
+    // Possible values are:
+    // 1. no groups: Means no groups are given access.
+    // 2. `["*"]`: All groups are allowed.
+    // 3. `["group1", "group2"]`: Only certain groups are allowed. In this example only
+    // _group1_ and _group2_ are allowed.
+    map <string, AccessType> groups = 1;
+    // Collaborator access to resource gives access to other user.
+    // Must be the username (unique id) set in the authorization token.
+    // The owner or the administrator can set this value. Possible values are:
+    // 1. no collaborators: Means no users are given access.
+    // 2. `["*"]`: All users are allowed.
+    // 3. `["username1", "username2"]`: Only certain usernames are allowed. In this example only
+    // _username1_ and _username2_ are allowed.
+    map <string, AccessType> collaborators = 2;
+    // Public access to resource may be assigned for access by the public userd
+    PublicAccessControl public = 3;
+  }
+
+  // Username of owner.
+  //
+  // The storage system uses the username taken from the security authorization
+  // token and is saved on this field. Only users with system administration
+  // can edit this value.
+  string owner = 1;
+  // Permissions to share resource which can be set by the owner.
+  //
+  // NOTE: To create an "admin" user which has access to any resource set the group value
+  // in the token of the user to `*`.
+  AccessControl acls = 2;
+}

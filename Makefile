@@ -1,4 +1,5 @@
 
+TAG := dev
 HAS_ERRCHECK := $(shell command -v errcheck 2> /dev/null)
 PKGS := $(shell go list ./... | grep -v vendor | grep -v examples)
 
@@ -41,3 +42,12 @@ travis-verify: pr-verify verify
 # Run this after creating and pushing a release tag into the repo
 go-mod-publish:
 	GOPROXY=proxy.golang.org go list -m github.com/libopenstorage/grpc-framework@$(shell git describe --tags)
+
+proto:
+	$(MAKE) -C pkg/auth/ownership
+
+clean:
+	$(MAKE) clean -C test/app
+
+container:
+	docker build -f Dockerfile.proto -t quay.io/openstorage/grpc-framework:$(TAG) .

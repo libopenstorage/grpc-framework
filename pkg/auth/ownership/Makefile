@@ -1,19 +1,6 @@
+PROTO_FILE = ownership.proto
 
-PROTO_FILE = ./api/hello.proto
-
-all: proto server client
-
-./bin:
-	mkdir ./bin
-
-server: ./bin
-	go build -o ./bin/server cmd/server.go
-
-client: ./bin
-	go build -o ./bin/client cmd/client/client.go
-
-clean:
-	rm -rf ./bin
+all: proto
 
 proto:
 	docker run \
@@ -32,4 +19,4 @@ ifndef DOCKER_PROTO
 	$(error Do not run directly. Run 'make proto' instead.)
 endif
 	grpcfw $(PROTO_FILE)
-
+	rm -f ownership.swagger.json

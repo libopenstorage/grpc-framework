@@ -21,9 +21,9 @@ import (
 	"io"
 	"sync"
 
+	"github.com/libopenstorage/grpc-framework/pkg/auth/role"
 	"github.com/libopenstorage/grpc-framework/pkg/correlation"
 	grpcserver "github.com/libopenstorage/grpc-framework/pkg/grpc/server"
-	"github.com/libopenstorage/grpc-framework/pkg/role"
 
 	"github.com/sirupsen/logrus"
 

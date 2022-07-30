@@ -22,7 +22,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
-	"github.com/libopenstorage/grpc-framework/pkg/role"
+	"github.com/libopenstorage/grpc-framework/pkg/auth/role"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 
