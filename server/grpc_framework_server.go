@@ -122,7 +122,7 @@ func (s *GrpcFrameworkServer) Start() error {
 
 	// Add correlation interceptor
 	correlationInterceptor := correlation.ContextInterceptor{
-		Origin: correlation.ComponentSDK,
+		Origin: correlation.ComponentGrpcFw,
 	}
 
 	var (
