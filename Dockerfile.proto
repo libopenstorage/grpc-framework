@@ -28,9 +28,9 @@ RUN go install \
 RUN mkdir -p /go/src/github.com/grpc-ecosystem && \
 	cd /go/src/github.com/grpc-ecosystem && \
 	git clone -b v2.10.0 https://github.com/grpc-ecosystem/grpc-gateway.git
-
 # Install swagger 2.0 to OpenApi 3.0 converter
 RUN npm install -g swagger2openapi
+
 ##
 ## protobuf and golang gRPC compilers
 ##
@@ -44,10 +44,17 @@ RUN mkdir -p /go/src/github.com/googleapis && \
 	git clone https://github.com/googleapis/googleapis.git
 
 ##
+## proto-gen-doc
+##
+RUN wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v1.5.1/protoc-gen-doc_1.5.1_linux_amd64.tar.gz && \
+	tar xzvf protoc-gen-doc_1.5.1_linux_amd64.tar.gz && \
+	mv protoc-gen-doc /usr/local/bin
+
+##
 ## grpc-framework additions
 ##
 # Install tools
-COPY ./tools/* /usr/local/bin
+COPY ./tools/grpcfw* /usr/local/bin/
 # Add protofiles
 RUN mkdir -p /go/src/github.com/libopenstorage/grpc-framework
 COPY . /go/src/github.com/libopenstorage/grpc-framework

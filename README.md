@@ -9,3 +9,33 @@ more information.
 
 * FYI, we are in the process of creating tutorials and adding more documentation
 to the framework
+
+
+## Development
+
+### Documentation
+
+* Setup the environment to write documentation
+
+```
+$ make doc-env
+```
+
+* Bring up the webserver
+
+```
+$ make doc-serve
+```
+
+Now edit the files in the direcory `website`.
+
+* When done, build the website and add the `docs` dir to git:
+
+```
+$ make doc-build
+```
+
+For more information on mkdocs go to:
+
+* https://www.mkdocs.org/
+* https://squidfunk.github.io/mkdocs-material/getting-started/ 
