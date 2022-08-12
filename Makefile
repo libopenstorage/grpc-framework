@@ -51,3 +51,24 @@ clean:
 
 container:
 	docker build -f Dockerfile.proto -t quay.io/openstorage/grpc-framework:$(TAG) .
+
+./venv:
+	python3 -m venv venv
+	bash -c "source venv/bin/activate && \
+		pip3 install -r requirements.txt"
+	@echo "Type: 'source venv/bin/active' to get access to mkdocs"
+
+doc-env: ./venv
+
+doc-build: ./venv
+	bash -c "source venv/bin/activate && \
+		cd website && \
+		mkdocs build"
+
+doc-serve: ./venv
+	bash -c "source venv/bin/activate && \
+		cd website && \
+		mkdocs serve"
+
+.PHONY: docenv clean proto go-mod-publish travis-verify verify \
+	testapp test pr-verify errcheck vet fmt build
