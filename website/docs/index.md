@@ -3,15 +3,17 @@
 The grpc-framework enables Golang developers to create secure gRPC applications
 easily. The project provides developers with the following features:
 
+- Generate REST and swagger APIs
+- Generate Markdown documentation
 - Security
     - Authentication (OIDC and JWT supported)
     - Authorization (RBAC / Role Based Access Control)
     - TLS support
     - Auditing
-- proto/gRPC build container
 - Rate Limiter
 - Metrics for Prometheus
 - API Logging
+- proto/gRPC build container
 - And more...
 ## Dependencies
 
