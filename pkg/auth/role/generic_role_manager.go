@@ -1,5 +1,5 @@
 /*
-Generic role manager
+Generirc
 Copyright 2022 Pure Storage
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,57 +28,35 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const (
-	SystemAdminRoleName = "system.admin"
-	SystemGuestRoleName = "system.guest"
-)
-
-type GenericRule struct {
-	Services []string
-	Apis     []string
+// GenericRoleManager contains roles to verify for RBAC
+type GenericRoleManager struct {
+	tag   string
+	roles map[string]*Role
 }
 
-type GenericRoleManager struct{}
-
-type DefaultRole struct {
-	Rules []*GenericRule
-}
-
-var (
-	// DefaultRoles are the default roles to load on system startup
-	// Should be prefixed by `system.` to avoid collisions
-	DefaultRoles = map[string]*DefaultRole{
-		// system:admin role can run any command
-		SystemAdminRoleName: &DefaultRole{
-			Rules: []*GenericRule{
-				&GenericRule{
-					Services: []string{"*"},
-					Apis:     []string{"*"},
-				},
-			},
-		},
-
-		// system:guest role is used for any unauthenticated user.
-		// They can only use standard volume lifecycle commands.
-		SystemGuestRoleName: &DefaultRole{
-			Rules: []*GenericRule{
-				&GenericRule{
-					Services: []string{"!*"},
-					Apis:     []string{"!*"},
-				},
-			},
-		},
+// NewGenericRoleManager returns an RBAC API role manager
+// that supports only the roles as defined by roles.
+// `tag` is the tag in the service name. For example:
+// If the gRPC info.FullMethod is /openstorage.api.OpenStorage<service>/<method>
+// .   then the tag is "openstorage.api.OpenStorage".
+// This will make it possible to only use the "<service>" name in the Rule.Service for convenience.
+// If `tag` is "", then the info.FullMethod path must be provided in the Rule.Service
+//
+func NewGenericRoleManager(tag string, roles map[string]*Role) *GenericRoleManager {
+	return &GenericRoleManager{
+		tag:   tag,
+		roles: roles,
 	}
-)
+}
 
 // Verify determines if the role has access to `fullmethod`
 func (r *GenericRoleManager) Verify(ctx context.Context, roles []string, fullmethod string) error {
 
 	// Check all roles
 	for _, role := range roles {
-		if defaultRole, ok := DefaultRoles[role]; ok {
-			if err := r.VerifyRules(defaultRole.Rules,
-				"", /* this would be the default root path of the APIs */
+		if rbac, ok := r.roles[role]; ok {
+			if err := r.VerifyRules(rbac.Rules,
+				r.tag,
 				fullmethod); err == nil {
 				return nil
 			}
@@ -89,7 +67,7 @@ func (r *GenericRoleManager) Verify(ctx context.Context, roles []string, fullmet
 }
 
 // VerifyRules checks if the rules authorize use of the API called `fullmethod`
-func (r *GenericRoleManager) VerifyRules(rules []*GenericRule, rootPath, fullmethod string) error {
+func (r *GenericRoleManager) VerifyRules(rules []*Rule, rootPath, fullmethod string) error {
 
 	reqService, reqApi := grpcutil.GetMethodInformation(rootPath, fullmethod)
 

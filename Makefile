@@ -44,7 +44,7 @@ go-mod-publish:
 	GOPROXY=proxy.golang.org go list -m github.com/libopenstorage/grpc-framework@$(shell git describe --tags)
 
 proto:
-	$(MAKE) -C pkg/auth/ownership
+	$(MAKE) -C pkg proto
 
 clean:
 	$(MAKE) clean -C test/app
@@ -60,15 +60,16 @@ container:
 
 doc-env: ./venv
 
-doc-build: ./venv
+doc-build: doc-env
 	bash -c "source venv/bin/activate && \
 		cd website && \
 		mkdocs build"
 
-doc-serve: ./venv
+doc-serve: doc-env
 	bash -c "source venv/bin/activate && \
 		cd website && \
 		mkdocs serve"
 
-.PHONY: docenv clean proto go-mod-publish travis-verify verify \
-	testapp test pr-verify errcheck vet fmt build
+.PHONY: clean proto go-mod-publish travis-verify verify \
+	testapp test pr-verify errcheck vet fmt build \
+	doc-env doc-build doc-serve container

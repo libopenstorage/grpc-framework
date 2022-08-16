@@ -39,6 +39,8 @@ func DenyRule(rule, s string) bool {
 // 'xxx*' - starts with xxx
 // '*xxx*' - contains xxx
 func MatchRule(rule, s string) bool {
+	rule = strings.ToLower(rule)
+	s = strings.ToLower(s)
 	// no rule
 	rl := len(rule)
 	if rl == 0 {

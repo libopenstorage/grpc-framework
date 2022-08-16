@@ -1,4 +1,4 @@
-PROTO_FILE = ownership.proto
+PROTO_FILE = role.proto
 
 all: proto
 
@@ -20,4 +20,4 @@ ifndef DOCKER_PROTO
 endif
 	grpcfw $(PROTO_FILE)
 	grpcfw-doc $(PROTO_FILE)
-	rm -f ownership.swagger.json
+	rm -f role.swagger.json
