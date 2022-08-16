@@ -221,7 +221,7 @@ func (o *Ownership) Update(newownerInfo *Ownership, user *auth.UserInfo) error {
 		// or admin can change the group
 		if user.Username != o.Owner &&
 			!o.IsAdminByUser(user) &&
-			!o.IsPermitted(user, Ownership_Admin) {
+			!o.IsPermitted(user, Ownership_ADMIN) {
 			return status.Error(codes.PermissionDenied,
 				"Only owner or those with admin access type can update volume acls")
 		}

@@ -25,13 +25,13 @@ message Ownership {
   // used for.
   enum AccessType {
     // Read access only and cannot affect the resource.
-    Read = 0;
+    READ = 0;
     // Write access and can affect the resource.
     // This type automatically provides Read access also.
-    Write = 1;
+    WRITE = 1;
     // Administrator access.
     // This type automatically provides Read and Write access also.
-    Admin = 2;
+    ADMIN = 2;
   }
   // PublicAccessControl allows assigning public ownership
   message PublicAccessControl {
