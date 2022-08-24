@@ -25,19 +25,3 @@ PROTO_NAME=${p%.*}
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative \
 		$PROTO_FILE
-	$PROTOC -I . \
-		-I /usr/local/include \
-		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
-		-I $PROTOS_PATH/github.com/googleapis/googleapis \
-		--grpc-gateway_out=logtostderr=true:. \
-		$PROTO_FILE
-	$PROTOC -I . \
-		-I /usr/local/include \
-		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
-		-I $PROTOS_PATH/github.com/googleapis/googleapis \
-		--openapiv2_out=logtostderr=true:. \
-		$PROTO_FILE
-	cp ${PROTOSRC_PATH}/${PROTO_NAME}.swagger.json $tmpfile
-	swagger2openapi $tmpfile -o ${PROTOSRC_PATH}/${PROTO_NAME}.swagger.json
-	rm -f $tmpfile
-

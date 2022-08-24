@@ -15,7 +15,8 @@ easily. The project provides developers with the following features:
 - API Logging
 - proto/gRPC build container
 - And more...
-## Dependencies
+
+## Projects Used
 
 grpc-framework uses the following excellent projects in the framework:
 
