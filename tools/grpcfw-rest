@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PROTOC=protoc
+PROTOS_PATH=${GOPATH}/src
+tmpfile=/tmp/swagger.$$
+
+PROTO_FILE=$1
+if [ $# -lt 1 ] ; then
+	echo "Must provide proto file path"
+	echo "Usage: grpcfw-rest <proto file>"
+	exit 1
+fi
+PROTOSRC_PATH=$(dirname $1)
+PROTO_FILE=$1
+
+p="${1##*/}"
+PROTO_NAME=${p%.*}
+
+	$PROTOC -I . \
+		-I /usr/local/include \
+		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
+		-I $PROTOS_PATH/github.com/googleapis/googleapis \
+		--grpc-gateway_out=logtostderr=true:. \
+		$PROTO_FILE
+	$PROTOC -I . \
+		-I /usr/local/include \
+		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
+		-I $PROTOS_PATH/github.com/googleapis/googleapis \
+		--openapiv2_out=logtostderr=true:. \
+		$PROTO_FILE
+	cp ${PROTOSRC_PATH}/${PROTO_NAME}.swagger.json $tmpfile
+	swagger2openapi $tmpfile -o ${PROTOSRC_PATH}/${PROTO_NAME}.swagger.json
+	rm -f $tmpfile
+

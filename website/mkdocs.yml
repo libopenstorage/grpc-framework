@@ -3,6 +3,35 @@
 #
 
 site_name: grpc-framework
+nav:
+    - Home: index.md
+    - Getting Started:
+        - Introduction: intro.md
+    - Tutorials:
+        - Introduction: tutorial/intro.md
+        - Proto file: tutorial/proto.md
+        - Setting up the server: tutorial/server.md
+        - Connect with the client: tutorial/client.md
+        - REST: tutorial/rest.md
+        - Rate limit: tutorial/rate-limit.md 
+        - Security:
+            - TLS: tutorial/security/tls.md
+            - Authentication: tutorial/security/authentication.md
+            - RBAC authorization: tutorial/security/rbac.md
+            - Resource authorization: tutorial/security/ownership.md
+    - Reference:
+        - Introduction: reference/intro.md
+        - Style Guide: reference/style-guide.md
+        - Generate Documentation: reference/gen-doc.md
+        - REST: reference/rest.md
+        - Rate Limiter: reference/rate-limiter.md
+        - Security:
+            - Introduction: reference/security/intro.md
+            - Authentication: reference/security/authentication.md
+            - Authorization: reference/security/authorization.md
+            - TLS: reference/security/tls.md
+            - Logging and Audit: reference/security/audit.md
+    - About: about.md
 markdown_extensions:
     - abbr
     - admonition
@@ -71,10 +100,3 @@ theme:
         text: Roboto
         code: Roboto Mono
 site_dir: ../docs
-nav:
-    - Home: index.md
-    - Getting Started:
-        - Introduction: intro.md
-        - Style Guide: style-guide.md
-        - Example: hello.pb.md
-    - About: about.md

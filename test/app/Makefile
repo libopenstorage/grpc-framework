@@ -1,5 +1,6 @@
 
 PROTO_FILE = ./api/hello.proto
+TAG = latest
 
 all: proto server client
 
@@ -24,7 +25,7 @@ proto:
 		-e "PROTO_USER=$(shell id -u)" \
 		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
-		quay.io/openstorage/grpc-framework:latest \
+		quay.io/openstorage/grpc-framework:$(TAG)\
 			make docker-proto
 
 docker-proto:
@@ -32,5 +33,6 @@ ifndef DOCKER_PROTO
 	$(error Do not run directly. Run 'make proto' instead.)
 endif
 	grpcfw $(PROTO_FILE)
+	grpcfw-rest $(PROTO_FILE)
 	grpcfw-doc $(PROTO_FILE)
 
