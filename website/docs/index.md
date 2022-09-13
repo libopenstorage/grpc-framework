@@ -24,6 +24,38 @@ To add the library to your Golang application use the following command:
 go get github.com/libopenstorage/grpc-framework@v0.0.5
 ```
 
+Also, use the following container version on your builds:
+
+```
+quay.io/openstorage/grpc-framework:v0.0.5
+```
+
+Here is an example:
+
+```Makefile
+PROTO_FILE = ./api/hello.proto
+
+proto:
+	docker run \
+		--privileged --rm \
+		-v $(shell pwd):/go/src/code \
+		-e "GOPATH=/go" \
+		-e "DOCKER_PROTO=yes" \
+		-e "PROTO_USER=$(shell id -u)" \
+		-e "PROTO_GROUP=$(shell id -g)" \
+		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
+		quay.io/openstorage/grpc-framework:v0.0.5 \
+			make docker-proto
+
+docker-proto:
+ifndef DOCKER_PROTO
+	$(error Do not run directly. Run 'make proto' instead.)
+endif
+	grpcfw $(PROTO_FILE)
+	grpcfw-rest $(PROTO_FILE)
+	grpcfw-doc $(PROTO_FILE)
+```
+
 We are working on a tutorial, but in the meantime, please check out
 the example [test program].
 

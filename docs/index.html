@@ -1020,6 +1020,32 @@ easily. The project provides developers with the following features:</p>
 <p>To add the library to your Golang application use the following command:</p>
 <pre><code class="language-bash">go get github.com/libopenstorage/grpc-framework@v0.0.5
 </code></pre>
+<p>Also, use the following container version on your builds:</p>
+<pre><code>quay.io/openstorage/grpc-framework:v0.0.5
+</code></pre>
+<p>Here is an example:</p>
+<pre><code class="language-Makefile">PROTO_FILE = ./api/hello.proto
+
+proto:
+    docker run \
+        --privileged --rm \
+        -v $(shell pwd):/go/src/code \
+        -e &quot;GOPATH=/go&quot; \
+        -e &quot;DOCKER_PROTO=yes&quot; \
+        -e &quot;PROTO_USER=$(shell id -u)&quot; \
+        -e &quot;PROTO_GROUP=$(shell id -g)&quot; \
+        -e &quot;PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin&quot; \
+        quay.io/openstorage/grpc-framework:v0.0.5 \
+            make docker-proto
+
+docker-proto:
+ifndef DOCKER_PROTO
+    $(error Do not run directly. Run 'make proto' instead.)
+endif
+    grpcfw $(PROTO_FILE)
+    grpcfw-rest $(PROTO_FILE)
+    grpcfw-doc $(PROTO_FILE)
+</code></pre>
 <p>We are working on a tutorial, but in the meantime, please check out
 the example <a href="https://github.com/libopenstorage/grpc-framework/tree/master/test/app">test program</a>.</p>
 <h2 id="projects-used">Projects Used<a class="headerlink" href="#projects-used" title="Permanent link">&para;</a></h2>
