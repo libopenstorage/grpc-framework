@@ -6,8 +6,6 @@ interfaces for their Golang applications.
 
 ## Usage
 
-## Usage
-
 Please see our [Documentation](https://libopenstorage.github.io/grpc-framework) for
 more information.
 
