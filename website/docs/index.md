@@ -16,6 +16,19 @@ easily. The project provides developers with the following features:
 - proto/gRPC build container
 - And more...
 
+## Usage
+
+To add the library to your Golang application use the following command:
+
+```bash
+go get github.com/libopenstorage/grpc-framework@v0.0.5
+```
+
+We are working on a tutorial, but in the meantime, please check out
+the example [test program].
+
+[test program]: https://github.com/libopenstorage/grpc-framework/tree/master/test/app
+
 ## Projects Used
 
 grpc-framework uses the following excellent projects in the framework:

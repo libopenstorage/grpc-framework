@@ -2,6 +2,7 @@
 # For more information see https://squidfunk.github.io/mkdocs-material/getting-started/
 #
 
+# NOTE! This took me a while to figure out, but mkdocs does not accept any section label with a doc page
 site_name: grpc-framework
 nav:
     - Home: index.md
@@ -22,9 +23,11 @@ nav:
     - Reference:
         - Introduction: reference/intro.md
         - Style Guide: reference/style-guide.md
-        - Generate Documentation: reference/gen-doc.md
         - REST: reference/rest.md
         - Rate Limiter: reference/rate-limiter.md
+        - Generate Documentation:
+            - Introduction: reference/gen-doc.md
+            - Example Generated documentation: reference/hello.pb.md
         - Security:
             - Introduction: reference/security/intro.md
             - Authentication: reference/security/authentication.md
