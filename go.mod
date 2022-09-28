@@ -13,14 +13,15 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.1
-	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3
-	google.golang.org/grpc v1.46.0
+	google.golang.org/genproto v0.0.0-20220616135557-88e70c0c3a90
+	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 )
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/coreos/go-oidc/v3 v3.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.1.2 // indirect
@@ -31,12 +32,12 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a // indirect
-	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
+	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
-	google.golang.org/appengine v1.6.6 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
