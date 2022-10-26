@@ -17,8 +17,11 @@ package auth
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 
 	oidc "github.com/coreos/go-oidc/v3/oidc"
+	"github.com/sirupsen/logrus"
 )
 
 // From the oidc package:
@@ -33,8 +36,8 @@ import (
 
 // JWKSAuthConfig configures an JWKS connection
 type JWKSAuthConfig struct {
-	// Issuer of the tokens
-	// e.g. https://accounts.google.com
+	// Issuer of the tokens.
+	// This value must equal the `iss` value in the token.
 	Issuer string
 	// JWKSUrl is the actual URL to the public key in jwks format
 	// e.g. https://www.googleapis.com/oauth2/v3/certs
@@ -56,22 +59,63 @@ type JWKSAuthenticator struct {
 	keyset  *oidc.RemoteKeySet
 }
 
-// NewJWKS returns a new JWKS authenticator
-// Example:
+// NewJWKSAuthenticator returns a new JWKS authenticator where the issuer
+// must be the same host as the JWKSUrl
 //
-//      c := &JWKSAuthConfig{
-//          Issuer:  "http://localhost",
-//          JWKSUrl: "https://localhost:3080/.well-known/jwks.json",
-//      }
-//      a, err := NewJWKSAuthenticator(c)
-//
+//	c := &JWKSAuthConfig{
+//	    Issuer:  "https://some.token.authority",
+//	    JWKSUrl: "https://some.token.authority:3030/.well-known/jwks.json",
+//	}
+//	a, err := NewJWKSAuthenticator(c)
 func NewJWKSAuthenticator(config *JWKSAuthConfig) (*JWKSAuthenticator, error) {
+	if config.JWKSUrl == "" {
+		return nil, fmt.Errorf("JWKS url missing")
+	}
+	if config.Issuer == "" {
+		return nil, fmt.Errorf("issuer missing")
+	}
+
+	jwkUrl, err := url.Parse(config.JWKSUrl)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing JWKSurl: %v", err)
+	}
+	issuerUrl, err := url.Parse(config.Issuer)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing issuer: %v", err)
+	}
+
+	if jwkUrl.Host != issuerUrl.Host {
+		return nil, fmt.Errorf(
+			"issuer[%s] host is not the same as JWKSUrl[%s]",
+			config.Issuer,
+			config.JWKSUrl)
+	}
+	return NewJWKSWithIssuerAuthenticator(config)
+}
+
+// NewJWKSWithIssuerAuthenticator returns a new JWKS authenticator where
+// the issuer can be a different host from the JWKSUrl.
+//
+// Note, that this may cause a security issue if the config provider is
+// malicious. You should know what you are doing if you use this model.
+//
+//	c := &JWKSAuthConfig{
+//	    Issuer:  "https://anther.host"
+//	    JWKSUrl: "https://some.token.authority/.well-known/jwks.json",
+//	}
+//	a, err := NewJWKSAuthenticator(c)
+func NewJWKSWithIssuerAuthenticator(config *JWKSAuthConfig) (*JWKSAuthenticator, error) {
 	keyset := oidc.NewRemoteKeySet(context.Background(), config.JWKSUrl)
 	oidcConfig := &oidc.Config{
 		SkipClientIDCheck: true,
-		SkipIssuerCheck:   true,
 	}
 	verifier := oidc.NewVerifier(config.Issuer, keyset, oidcConfig)
+
+	logrus.WithFields(logrus.Fields{
+		"issuer":  config.Issuer,
+		"jwksUrl": config.JWKSUrl,
+	}).Infof("Authenticator JWKS")
+
 	return &JWKSAuthenticator{
 		OIDCAuthenticator: OIDCAuthenticator{
 			url:           config.Issuer,
