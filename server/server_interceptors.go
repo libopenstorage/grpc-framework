@@ -197,6 +197,7 @@ func (s *GrpcFrameworkServer) authorizationInterceptor(
 	log := correlation.NewFunctionLogger(ctx)
 	log.Out = s.auditLogOutput
 	logger := log.WithFields(logrus.Fields{
+		"issuer":   claims.Issuer,
 		"username": userinfo.Username,
 		"subject":  claims.Subject,
 		"name":     claims.Name,
