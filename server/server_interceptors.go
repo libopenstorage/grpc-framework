@@ -133,7 +133,7 @@ func (s *GrpcFrameworkServer) loggerInterceptor(ctx context.Context, handler fun
 	logger.Info("Start")
 	ts := time.Now()
 	err := handler()
-	duration := time.Now().Sub(ts)
+	duration := time.Since(ts)
 	if err != nil {
 		logger.WithFields(logrus.Fields{"duration": duration}).Infof("Failed: %v", err)
 	} else {
