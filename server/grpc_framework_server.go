@@ -174,7 +174,7 @@ func (s *GrpcFrameworkServer) Start() error {
 		streamInterceptors = append(streamInterceptors, s.authorizationServerStreamInterceptor)
 	}
 
-	// append remaining default unary interceptors
+	// append remaining default stream interceptors
 	streamInterceptors = append(streamInterceptors, []grpc.StreamServerInterceptor{
 		s.loggerServerStreamInterceptor,
 		grpc_prometheus.StreamServerInterceptor,
