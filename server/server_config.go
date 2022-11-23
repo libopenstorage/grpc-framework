@@ -136,6 +136,18 @@ type ServerConfig struct {
 
 	// ServerOptions hold any special gRPC server options
 	ServerOptions []grpc.ServerOption
+
+	// AuthNUnaryInterceptor installs a custom authN unary interceptor and overrides the default one
+	AuthNUnaryInterceptor grpc.UnaryServerInterceptor
+
+	// AuthNStreamInterceptor installs a custom authN stream interceptor and overrides the default one
+	AuthNStreamInterceptor grpc.StreamServerInterceptor
+
+	// AuthZUnaryInterceptor installs a custom authZ unary interceptor and overrides the default one
+	AuthZUnaryInterceptor grpc.UnaryServerInterceptor
+
+	// AuthZStreamInterceptor installs a custom authZ stream interceptor and overrides the default one
+	AuthZStreamInterceptor grpc.StreamServerInterceptor
 }
 
 var (
@@ -192,6 +204,26 @@ func (c *ServerConfig) WithDefaultRestServer(port string) *ServerConfig {
 	c.RestConfig.Port = port
 	c.RestConfig.Enabled = true
 	return c.WithRestCors(DefaultRestServerCors).WithRestPrometheus("/metrics")
+}
+
+func (c *ServerConfig) WithAuthNInterceptors(unary grpc.UnaryServerInterceptor, stream grpc.StreamServerInterceptor,
+) *ServerConfig {
+	if c == nil {
+		return c
+	}
+	c.AuthNUnaryInterceptor = unary
+	c.AuthNStreamInterceptor = stream
+	return c
+}
+
+func (c *ServerConfig) WithAuthZInterceptors(unary grpc.UnaryServerInterceptor, stream grpc.StreamServerInterceptor,
+) *ServerConfig {
+	if c == nil {
+		return c
+	}
+	c.AuthZUnaryInterceptor = unary
+	c.AuthZStreamInterceptor = stream
+	return c
 }
 
 func (c *ServerConfig) WithServerUnaryInterceptors(i ...grpc.UnaryServerInterceptor) *ServerConfig {

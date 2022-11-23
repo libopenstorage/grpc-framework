@@ -55,7 +55,7 @@ type GrpcFrameworkServer struct {
 // New creates a new gRPC server for the gRPC framework
 func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) {
 	if nil == config {
-		return nil, fmt.Errorf("Configuration must be provided")
+		return nil, fmt.Errorf("configuration must be provided")
 	}
 
 	// Default to tcp
@@ -70,12 +70,12 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 	})
 
 	// Setup authentication
-	for issuer, _ := range config.Security.Authenticators {
+	for issuer := range config.Security.Authenticators {
 		log.Infof("Authentication enabled for issuer: %s", issuer)
 
 		// Check the necessary security config options are set
-		if config.Security.Role == nil {
-			return nil, fmt.Errorf("Must supply role manager when authentication enabled")
+		if config.Security.Role == nil && (config.AuthZUnaryInterceptor == nil || config.AuthZStreamInterceptor == nil) {
+			return nil, fmt.Errorf("must supply role manager when authentication is enabled and default authZ is used")
 		}
 	}
 
@@ -86,7 +86,7 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 		Address: config.Address,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Unable to setup %s server: %v", name, err)
+		return nil, fmt.Errorf("unable to setup %s server: %v", name, err)
 	}
 
 	s := &GrpcFrameworkServer{
@@ -112,7 +112,7 @@ func (s *GrpcFrameworkServer) Start() error {
 			s.config.Security.Tls.CertFile,
 			s.config.Security.Tls.KeyFile)
 		if err != nil {
-			return fmt.Errorf("Failed to create credentials from cert files: %v", err)
+			return fmt.Errorf("failed to create credentials from cert files: %v", err)
 		}
 		opts = append(opts, grpc.Creds(creds))
 		s.log.Info("TLS enabled")
@@ -125,45 +125,62 @@ func (s *GrpcFrameworkServer) Start() error {
 		Origin: correlation.ComponentGrpcFw,
 	}
 
-	var (
-		unaryInterceptors  []grpc.UnaryServerInterceptor
-		streamInterceptors []grpc.StreamServerInterceptor
-	)
-
-	// Setup authentication and authorization using interceptors if auth is enabled
-	if len(s.config.Security.Authenticators) != 0 {
-		// Setup default security interceptors
-		unaryInterceptors = []grpc.UnaryServerInterceptor{
-			s.rwlockUnaryIntercepter,
-			correlationInterceptor.ContextUnaryServerInterceptor,
-			grpc_auth.UnaryServerInterceptor(s.auth),
-			s.authorizationServerUnaryInterceptor,
-			s.loggerServerUnaryInterceptor,
-			grpc_prometheus.UnaryServerInterceptor,
-		}
-		streamInterceptors = []grpc.StreamServerInterceptor{
-			s.rwlockStreamIntercepter,
-			grpc_auth.StreamServerInterceptor(s.auth),
-			s.authorizationServerStreamInterceptor,
-			s.loggerServerStreamInterceptor,
-			grpc_prometheus.StreamServerInterceptor,
-		}
-	} else {
-		// Setup default interceptors
-		unaryInterceptors = []grpc.UnaryServerInterceptor{
-			s.rwlockUnaryIntercepter,
-			correlationInterceptor.ContextUnaryServerInterceptor,
-			s.loggerServerUnaryInterceptor,
-			grpc_prometheus.UnaryServerInterceptor,
-		}
-		streamInterceptors = []grpc.StreamServerInterceptor{
-			s.rwlockStreamIntercepter,
-			s.loggerServerStreamInterceptor,
-			grpc_prometheus.StreamServerInterceptor,
-		}
+	// Set up unary interceptors
+	unaryInterceptors := []grpc.UnaryServerInterceptor{
+		s.rwlockUnaryIntercepter,
+		correlationInterceptor.ContextUnaryServerInterceptor,
 	}
 
-	// Append custom interceptors to the end of the chain
+	// use caller's authN interceptor if provided
+	if s.config.AuthNUnaryInterceptor != nil {
+		unaryInterceptors = append(unaryInterceptors, s.config.AuthNUnaryInterceptor)
+	} else if len(s.config.Security.Authenticators) > 0 {
+		// use the default authN interceptor
+		unaryInterceptors = append(unaryInterceptors, grpc_auth.UnaryServerInterceptor(s.auth))
+	}
+
+	// use caller's authZ interceptor if provided
+	if s.config.AuthZUnaryInterceptor != nil {
+		unaryInterceptors = append(unaryInterceptors, s.config.AuthZUnaryInterceptor)
+	} else if len(s.config.Security.Authenticators) > 0 {
+		// use the default authZ interceptor
+		unaryInterceptors = append(unaryInterceptors, s.authorizationServerUnaryInterceptor)
+	}
+
+	// append remaining default unary interceptors
+	unaryInterceptors = append(unaryInterceptors, []grpc.UnaryServerInterceptor{
+		s.loggerServerUnaryInterceptor,
+		grpc_prometheus.UnaryServerInterceptor,
+	}...)
+
+	// Set up stream interceptors
+	streamInterceptors := []grpc.StreamServerInterceptor{
+		s.rwlockStreamIntercepter,
+	}
+
+	// use caller's authN interceptor if provided
+	if s.config.AuthNStreamInterceptor != nil {
+		streamInterceptors = append(streamInterceptors, s.config.AuthNStreamInterceptor)
+	} else if len(s.config.Security.Authenticators) > 0 {
+		// use the default authN interceptor
+		streamInterceptors = append(streamInterceptors, grpc_auth.StreamServerInterceptor(s.auth))
+	}
+
+	// use caller's authZ interceptor if provided
+	if s.config.AuthZStreamInterceptor != nil {
+		streamInterceptors = append(streamInterceptors, s.config.AuthZStreamInterceptor)
+	} else if len(s.config.Security.Authenticators) > 0 {
+		// use the default authZ interceptor
+		streamInterceptors = append(streamInterceptors, s.authorizationServerStreamInterceptor)
+	}
+
+	// append remaining default stream interceptors
+	streamInterceptors = append(streamInterceptors, []grpc.StreamServerInterceptor{
+		s.loggerServerStreamInterceptor,
+		grpc_prometheus.StreamServerInterceptor,
+	}...)
+
+	// Append other custom interceptors to the end of the chain
 	unaryInterceptors = append(unaryInterceptors, s.config.UnaryServerInterceptors...)
 	streamInterceptors = append(streamInterceptors, s.config.StreamServerInterceptors...)
 
