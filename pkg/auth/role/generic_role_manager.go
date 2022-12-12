@@ -41,7 +41,6 @@ type GenericRoleManager struct {
 // .   then the tag is "openstorage.api.OpenStorage".
 // This will make it possible to only use the "<service>" name in the Rule.Service for convenience.
 // If `tag` is "", then the info.FullMethod path must be provided in the Rule.Service
-//
 func NewGenericRoleManager(tag string, roles map[string]*Role) *GenericRoleManager {
 	return &GenericRoleManager{
 		tag:   tag,

@@ -20,10 +20,13 @@ import "strings"
 
 // GetMethodInformation returns the service and API of a gRPC fullmethod string.
 // For example, if the full method is:
-//   /openstorage.api.OpenStorage<service>/<method>
+//
+//	/openstorage.api.OpenStorage<service>/<method>
+//
 // Then, to extract the service and api we would call it as follows:
-//   s, a := GetMethodInformation("openstorage.api.OpenStorage", info.FullMethod)
-//      where info.FullMethod comes from the gRPC interceptor
+//
+//	s, a := GetMethodInformation("openstorage.api.OpenStorage", info.FullMethod)
+//	   where info.FullMethod comes from the gRPC interceptor
 func GetMethodInformation(constPath, fullmethod string) (service, api string) {
 	parts := strings.Split(fullmethod, "/")
 
