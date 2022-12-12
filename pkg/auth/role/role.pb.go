@@ -35,7 +35,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-//
 // Rule is the message used to construct custom RBAC roles
 //
 // #### Format
@@ -57,6 +56,7 @@ const (
 // Rule:
 //   - Services: ["*"]
 //     Apis: ["*"]
+//
 // ```
 //
 // * Allow only cluster operations:
@@ -65,6 +65,7 @@ const (
 // Rule:
 //   - services: ["cluster"]
 //     apis: ["*"]
+//
 // ```
 //
 // * Allow inspection of any object and listings of only volumes
@@ -75,6 +76,7 @@ const (
 //     Apis: ["*enumerate*"]
 //   - Services: ["*"]
 //     Apis: ["inspect*"]
+//
 // ```
 //
 // * Allow all volume call except create
@@ -83,8 +85,8 @@ const (
 // Rule:
 //   - Services: ["volumes"]
 //     Apis: ["*", "!create"]
-// ```
 //
+// ```
 type Rule struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

@@ -3,10 +3,10 @@ LABEL org.opencontainers.image.authors="lpabon@purestorage.com"
 
 # VERSIONS
 # Confirm that the links are correct. Some tools change the links on newer versions
-ARG GFGOLANG=1.18.5
-ARG GFGRPCGATEWAY=2.10.0
+ARG GFGOLANG=1.19.4
+ARG GFGRPCGATEWAY=2.14.0
 ARG GFPROTOCGENDOC=1.5.1
-ARG GFPROTOC=3.20.1
+ARG GFPROTOC=3.20.3
 
 # Get gRPC golang versions from here: https://grpc.io/docs/languages/go/quickstart/
 # Also see: https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go
