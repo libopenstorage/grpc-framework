@@ -73,8 +73,13 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 	for issuer := range config.Security.Authenticators {
 		log.Infof("Authentication enabled for issuer: %s", issuer)
 
-		// Check the necessary security config options are set
-		if config.Security.Role == nil && (config.AuthZUnaryInterceptor == nil || config.AuthZStreamInterceptor == nil) {
+		// Check the necessary security config options are set. Authentication is enabled. Therefore,
+		// either RoleManager must be provided (this implies use of the default authZ)
+		// or explicit authZ interceptors must be provided
+		// or external authZ checker must be proviced (this implies use of external_authorizer.go)
+		if config.Security.Role == nil &&
+			(config.AuthZUnaryInterceptor == nil || config.AuthZStreamInterceptor == nil) &&
+			config.ExternalAuthZChecker == nil {
 			return nil, fmt.Errorf("must supply role manager when authentication is enabled and default authZ is used")
 		}
 	}
@@ -141,9 +146,14 @@ func (s *GrpcFrameworkServer) Start() error {
 
 	// use caller's authZ interceptor if provided
 	if s.config.AuthZUnaryInterceptor != nil {
+		// use caller's authZ interceptor as-is
 		unaryInterceptors = append(unaryInterceptors, s.config.AuthZUnaryInterceptor)
+	} else if s.config.ExternalAuthZChecker != nil {
+		// plug the caller-supplied authChecker into our external authorizer framework
+		unaryInterceptors = append(unaryInterceptors, s.externalAuthorizerUnaryInterceptor(
+			s.config.ExternalAuthZChecker, s.config.InsecureNoAuthNAuthZReqs, s.config.InsecureNoAuthZReqs))
 	} else if len(s.config.Security.Authenticators) > 0 {
-		// use the default authZ interceptor
+		// use our default authZ interceptor
 		unaryInterceptors = append(unaryInterceptors, s.authorizationServerUnaryInterceptor)
 	}
 
@@ -168,9 +178,14 @@ func (s *GrpcFrameworkServer) Start() error {
 
 	// use caller's authZ interceptor if provided
 	if s.config.AuthZStreamInterceptor != nil {
+		// use caller's authZ interceptor as-is
 		streamInterceptors = append(streamInterceptors, s.config.AuthZStreamInterceptor)
+	} else if s.config.ExternalAuthZChecker != nil {
+		// plug the caller-supplied authChecker into our external authorizer interceptor
+		streamInterceptors = append(streamInterceptors, s.externalAuthorizerStreamInterceptor(
+			s.config.ExternalAuthZChecker, s.config.InsecureNoAuthNAuthZReqs, s.config.InsecureNoAuthZReqs))
 	} else if len(s.config.Security.Authenticators) > 0 {
-		// use the default authZ interceptor
+		// use our default authZ interceptor
 		streamInterceptors = append(streamInterceptors, s.authorizationServerStreamInterceptor)
 	}
 

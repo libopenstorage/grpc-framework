@@ -148,6 +148,11 @@ type ServerConfig struct {
 
 	// AuthZStreamInterceptor installs a custom authZ stream interceptor and overrides the default one
 	AuthZStreamInterceptor grpc.StreamServerInterceptor
+
+	// ExternalAuthZChecker plugs into the external authorizer framework's authZ interceptor
+	ExternalAuthZChecker     ExternalAuthZChecker
+	InsecureNoAuthNAuthZReqs []interface{}
+	InsecureNoAuthZReqs      []interface{}
 }
 
 var (
@@ -223,6 +228,18 @@ func (c *ServerConfig) WithAuthZInterceptors(unary grpc.UnaryServerInterceptor, 
 	}
 	c.AuthZUnaryInterceptor = unary
 	c.AuthZStreamInterceptor = stream
+	return c
+}
+
+func (c *ServerConfig) WithExternalAuthZChecker(
+	authZChecker ExternalAuthZChecker, insecureNoAuthNAuthZReqs, insecureNoAuthZReqs []interface{},
+) *ServerConfig {
+	if c == nil {
+		return c
+	}
+	c.ExternalAuthZChecker = authZChecker
+	c.InsecureNoAuthNAuthZReqs = insecureNoAuthNAuthZReqs
+	c.InsecureNoAuthZReqs = insecureNoAuthZReqs
 	return c
 }
 
