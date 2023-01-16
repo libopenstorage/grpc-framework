@@ -98,6 +98,14 @@ func (s *GrpcFrameworkServer) externalAuthorizerUnaryInterceptor(
 		}
 		authZReq, handlerData, err := authZReqGetter.GetAuthZRequest(ctx, info.FullMethod, apiRequest)
 		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				log.WithContext(ctx).WithFields(logrus.Fields{
+					"method": "externalAuthorizerUnaryInterceptor",
+					"code":   st.Code().String(),
+				}).Warningf("failed to get authZ request, status: %v", err.Error())
+				return nil, err
+			}
 			return nil, auditLogErrorf(codes.Internal, "failed to get authZ request: %v", err)
 		}
 		switch authZReq {
