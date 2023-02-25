@@ -56,7 +56,16 @@ type Authenticator interface {
 	Username(*Claims) string
 }
 
-// Enabled returns whether or not auth is enabled.
+// MultiAuthenticatorWithClientID is a wrapper over the Authenticator interface
+// to manage multiple such authenticators based on the unique combination of issuer
+// and clientID.
+type MultiAuthenticatorWithClientID interface {
+	Authenticator
+	GetAuthenticator(issuer, clientID string) Authenticator
+	ListIssuersWithClientID() []IssuerWithClientID
+}
+
+// Enabled returns whether auth is enabled.
 func Enabled() bool {
 	return len(systemTokenInst.Issuer()) != 0
 }
