@@ -82,7 +82,7 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 	}
 	if config.Security.Authenticators != nil {
 		for _, issuer := range config.Security.Authenticators.ListIssuers() {
-			log.Infof("Authentication enabled for issuer: %s ", issuer)
+			log.Infof("Authentication enabled for issuer: %s", issuer)
 		}
 	}
 

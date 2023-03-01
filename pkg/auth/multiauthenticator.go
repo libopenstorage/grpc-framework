@@ -11,19 +11,18 @@ type multiAuthenticatorImpl struct {
 
 // NewMultiAuthenticator maintains a list of authenticators for a given issuer.
 // The input argument is a map of issuers to a list of authenticators for that issuer.
-// NOTE: This interface does not check if there are duplicate authenticators.
+// NOTE: This interface does not check if there are duplicate authenticators. The interface
+// will own the input map and will not create a copy of it.
 func NewMultiAuthenticator(
 	authenticators map[string][]Authenticator,
 ) (MultiAuthenticatorWithClientID, error) {
-	authMap := make(map[string][]Authenticator)
 	for issuer, authenticatorsList := range authenticators {
 		if len(authenticatorsList) == 0 {
 			return nil, fmt.Errorf("empty authenticators list for issuer %v", issuer)
 		}
-		authMap[issuer] = authenticatorsList
 	}
 	return &multiAuthenticatorImpl{
-		authenticators: authMap,
+		authenticators: authenticators,
 	}, nil
 }
 
