@@ -81,8 +81,8 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 		return nil, fmt.Errorf("must supply role manager when authentication is enabled and default authZ is used")
 	}
 	if config.Security.Authenticators != nil {
-		for _, issuerWithClientID := range config.Security.Authenticators.ListIssuersWithClientID() {
-			log.Infof("Authentication enabled for issuer: %s with clientID %s", issuerWithClientID.Issuer, issuerWithClientID.ClientID)
+		for _, issuer := range config.Security.Authenticators.ListIssuers() {
+			log.Infof("Authentication enabled for issuer: %s ", issuer)
 		}
 	}
 

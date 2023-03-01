@@ -9,40 +9,50 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewMultiAuthenticatorWithClientID_EmptyClientID(t *testing.T) {
-	// Given.
-	jwtAuth, err := NewJwtAuthenticator(&JwtAuthConfig{
-		SharedSecret:  []byte("my-secret"),
-		UsernameClaim: UsernameClaimTypeSubject,
+func TestNewMultiAuthenticator_EmptyAuthenticators(t *testing.T) {
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{
+		"issuer-1": []Authenticator{},
 	})
-	assert.NoError(t, err)
-	m, err := NewMultiAuthenticatorWithClientID(map[IssuerWithClientID]Authenticator{IssuerWithClientID{"issuer-1", ""}: jwtAuth})
 	assert.Error(t, err)
 	assert.Nil(t, m)
 }
 
-func TestNewMultiAuthenticatorWithClientID_EmptyIssuer(t *testing.T) {
+func TestNewMultiAuthenticator_ListIssuers(t *testing.T) {
 	// Given.
 	jwtAuth, err := NewJwtAuthenticator(&JwtAuthConfig{
 		SharedSecret:  []byte("my-secret"),
 		UsernameClaim: UsernameClaimTypeSubject,
 	})
 	assert.NoError(t, err)
-	m, err := NewMultiAuthenticatorWithClientID(map[IssuerWithClientID]Authenticator{IssuerWithClientID{"", "1"}: jwtAuth})
-	assert.Error(t, err)
-	assert.Nil(t, m)
-}
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{
+		"issuer-1": []Authenticator{jwtAuth},
+		// TODO: MultiAuthenticator does not check for duplicate authenticators across issuers.
+		"issuer-2": []Authenticator{jwtAuth},
+	})
+	assert.NoError(t, err)
 
-func TestMultiAuthenticatorWithClientID_GetAuthenticators_Ok(t *testing.T) {
+	// When.
+	issuers := m.ListIssuers()
+
+	// Then.
+	assert.Equal(t, 2, len(issuers))
+}
+func TestMultiAuthenticator_GetAuthenticators_Ok(t *testing.T) {
 	// Given.
-	jwtAuth, err := NewJwtAuthenticator(&JwtAuthConfig{
-		SharedSecret:  []byte("my-secret"),
+	jwtAuth1, err := NewJwtAuthenticator(&JwtAuthConfig{
+		SharedSecret:  []byte("my-secret1"),
 		UsernameClaim: UsernameClaimTypeSubject,
 	})
 	assert.NoError(t, err)
-	m, err := NewMultiAuthenticatorWithClientID(map[IssuerWithClientID]Authenticator{
-		IssuerWithClientID{"issuer-1", "1"}: jwtAuth,
-		IssuerWithClientID{"issuer-1", "2"}: jwtAuth,
+
+	jwtAuth2, err := NewJwtAuthenticator(&JwtAuthConfig{
+		SharedSecret:  []byte("my-secret2"),
+		UsernameClaim: UsernameClaimTypeSubject,
+	})
+	assert.NoError(t, err)
+
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{
+		"issuer-1": []Authenticator{jwtAuth1, jwtAuth2},
 	})
 	assert.NoError(t, err)
 
@@ -53,9 +63,9 @@ func TestMultiAuthenticatorWithClientID_GetAuthenticators_Ok(t *testing.T) {
 	assert.Equal(t, 2, len(authenticators))
 }
 
-func TestMultiAuthenticatorWithClientID_GetAuthenticator_FailNoIssuer(t *testing.T) {
+func TestMultiAuthenticator_GetAuthenticator_FailNoIssuer(t *testing.T) {
 	// Given.
-	m, err := NewMultiAuthenticatorWithClientID(map[IssuerWithClientID]Authenticator{})
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{})
 	assert.NoError(t, err)
 
 	// When.
@@ -65,7 +75,7 @@ func TestMultiAuthenticatorWithClientID_GetAuthenticator_FailNoIssuer(t *testing
 	assert.Empty(t, authenticators)
 }
 
-func TestMultiAuthenticatorWithClientID_AuthenticateToken_Ok(t *testing.T) {
+func TestMultiAuthenticator_AuthenticateToken_Ok(t *testing.T) {
 	// Given.
 	jwtAuth1, err := NewJwtAuthenticator(&JwtAuthConfig{
 		SharedSecret:  []byte("my-secret-1"),
@@ -73,13 +83,18 @@ func TestMultiAuthenticatorWithClientID_AuthenticateToken_Ok(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	m, err := NewMultiAuthenticatorWithClientID(map[IssuerWithClientID]Authenticator{
-		IssuerWithClientID{"issuer-1", "1"}: jwtAuth1,
-		IssuerWithClientID{"issuer-1", "2"}: jwtAuth1,
+	jwtAuth2, err := NewJwtAuthenticator(&JwtAuthConfig{
+		SharedSecret:  []byte("my-secret-2"),
+		UsernameClaim: UsernameClaimTypeSubject,
 	})
 	assert.NoError(t, err)
 
-	rawToken, err := Token(&Claims{
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{
+		"issuer-1": []Authenticator{jwtAuth1, jwtAuth2},
+	})
+	assert.NoError(t, err)
+
+	rawToken1, err := Token(&Claims{
 		Audience: "1",
 		Issuer:   "issuer-1",
 		Email:    "my@email.com",
@@ -88,15 +103,15 @@ func TestMultiAuthenticatorWithClientID_AuthenticateToken_Ok(t *testing.T) {
 		Roles:    []string{"tester"},
 	}, &Signature{
 		Type: jwt.SigningMethodHS256,
-		Key:  []byte("my-secret-1"),
+		Key:  []byte("my-secret-2"),
 	}, &Options{
 		Expiration: time.Now().Add(time.Minute * 10).Unix(),
 	})
 	assert.NoError(t, err)
-	assert.NotEmpty(t, rawToken)
+	assert.NotEmpty(t, rawToken1)
 
 	// When.
-	authenticateClaims, err := m.AuthenticateToken(context.Background(), rawToken)
+	authenticateClaims, err := m.AuthenticateToken(context.Background(), rawToken1)
 
 	// Then.
 	assert.NoError(t, err)
@@ -104,4 +119,73 @@ func TestMultiAuthenticatorWithClientID_AuthenticateToken_Ok(t *testing.T) {
 	assert.Equal(t, "my@email.com", authenticateClaims.Email)
 	assert.Equal(t, "my-name", authenticateClaims.Name)
 	assert.Equal(t, []string{"tester"}, authenticateClaims.Roles)
+
+	rawToken2, err := Token(&Claims{
+		Audience: "1",
+		Issuer:   "issuer-1",
+		Email:    "my@email.com",
+		Name:     "my-name",
+		Subject:  "my-sub",
+		Roles:    []string{"tester"},
+	}, &Signature{
+		Type: jwt.SigningMethodHS256,
+		Key:  []byte("my-secret-2"),
+	}, &Options{
+		Expiration: time.Now().Add(time.Minute * 10).Unix(),
+	})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, rawToken2)
+
+	// When.
+	authenticateClaims, err = m.AuthenticateToken(context.Background(), rawToken2)
+
+	// Then.
+	assert.NoError(t, err)
+	assert.Equal(t, "issuer-1", authenticateClaims.Issuer)
+	assert.Equal(t, "my@email.com", authenticateClaims.Email)
+	assert.Equal(t, "my-name", authenticateClaims.Name)
+	assert.Equal(t, []string{"tester"}, authenticateClaims.Roles)
+}
+
+func TestMultiAuthenticator_AuthenticateToken_Fail(t *testing.T) {
+	// Given.
+	jwtAuth1, err := NewJwtAuthenticator(&JwtAuthConfig{
+		SharedSecret:  []byte("my-secret-1"),
+		UsernameClaim: UsernameClaimTypeSubject,
+	})
+	assert.NoError(t, err)
+
+	jwtAuth2, err := NewJwtAuthenticator(&JwtAuthConfig{
+		SharedSecret:  []byte("my-secret-2"),
+		UsernameClaim: UsernameClaimTypeSubject,
+	})
+	assert.NoError(t, err)
+
+	m, err := NewMultiAuthenticator(map[string][]Authenticator{
+		"issuer-1": []Authenticator{jwtAuth1, jwtAuth2},
+	})
+	assert.NoError(t, err)
+
+	rawToken1, err := Token(&Claims{
+		Audience: "1",
+		Issuer:   "issuer-1",
+		Email:    "my@email.com",
+		Name:     "my-name",
+		Subject:  "my-sub",
+		Roles:    []string{"tester"},
+	}, &Signature{
+		Type: jwt.SigningMethodHS256,
+		Key:  []byte("my-secret-3"),
+	}, &Options{
+		Expiration: time.Now().Add(time.Minute * 10).Unix(),
+	})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, rawToken1)
+
+	// When.
+	authenticateClaims, err := m.AuthenticateToken(context.Background(), rawToken1)
+
+	// Then.
+	assert.Error(t, err)
+	assert.Nil(t, authenticateClaims)
 }

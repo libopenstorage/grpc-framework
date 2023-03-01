@@ -5,53 +5,41 @@ import (
 	"fmt"
 )
 
-type IssuerWithClientID struct {
-	// Issuer of the token. The issuer cannot be empty.
-	Issuer string
-	// ClientID of the token. The clientID cannot be empty.
-	ClientID string
+type multiAuthenticatorImpl struct {
+	authenticators map[string][]Authenticator
 }
 
-type multiAuthenticatorWithClientIDImpl struct {
-	authenticators map[IssuerWithClientID]Authenticator
-}
-
-func NewMultiAuthenticatorWithClientID(
-	authenticators map[IssuerWithClientID]Authenticator) (MultiAuthenticatorWithClientID, error) {
-	authMap := make(map[IssuerWithClientID]Authenticator)
-	for issuerWithClientID, authenticator := range authenticators {
-		if issuerWithClientID.ClientID == "" {
-			return nil, fmt.Errorf("clientID cannot be empty")
+// NewMultiAuthenticator maintains a list of authenticators for a given issuer.
+// The input argument is a map of issuers to a list of authenticators for that issuer.
+// NOTE: This interface does not check if there are duplicate authenticators.
+func NewMultiAuthenticator(
+	authenticators map[string][]Authenticator,
+) (MultiAuthenticatorWithClientID, error) {
+	authMap := make(map[string][]Authenticator)
+	for issuer, authenticatorsList := range authenticators {
+		if len(authenticatorsList) == 0 {
+			return nil, fmt.Errorf("empty authenticators list for issuer %v", issuer)
 		}
-		if issuerWithClientID.Issuer == "" {
-			return nil, fmt.Errorf("issuer cannot be empty")
-		}
-		authMap[issuerWithClientID] = authenticator
+		authMap[issuer] = authenticatorsList
 	}
-	return &multiAuthenticatorWithClientIDImpl{
+	return &multiAuthenticatorImpl{
 		authenticators: authMap,
 	}, nil
 }
 
-func (m *multiAuthenticatorWithClientIDImpl) ListIssuersWithClientID() []IssuerWithClientID {
-	var issuerWithClientIDs []IssuerWithClientID
-	for issuerWithClientID, _ := range m.authenticators {
-		issuerWithClientIDs = append(issuerWithClientIDs, issuerWithClientID)
-	}
-	return issuerWithClientIDs
+func (m *multiAuthenticatorImpl) GetAuthenticators(issuer string) []Authenticator {
+	return m.authenticators[issuer]
 }
 
-func (m *multiAuthenticatorWithClientIDImpl) GetAuthenticators(issuer string) []Authenticator {
-	var authenticators []Authenticator
-	for issuerWithClientID, authenticator := range m.authenticators {
-		if issuerWithClientID.Issuer == issuer {
-			authenticators = append(authenticators, authenticator)
-		}
+func (m *multiAuthenticatorImpl) ListIssuers() []string {
+	var issuers []string
+	for issuer, _ := range m.authenticators {
+		issuers = append(issuers, issuer)
 	}
-	return authenticators
+	return issuers
 }
 
-func (m *multiAuthenticatorWithClientIDImpl) AuthenticateToken(ctx context.Context, idToken string) (*Claims, error) {
+func (m *multiAuthenticatorImpl) AuthenticateToken(ctx context.Context, idToken string) (*Claims, error) {
 	tokenClaims, err := TokenClaims(idToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get claims from token: %w", err)
@@ -68,9 +56,9 @@ func (m *multiAuthenticatorWithClientIDImpl) AuthenticateToken(ctx context.Conte
 		tokenClaims.Issuer, tokenClaims.Audience)
 }
 
-func (m *multiAuthenticatorWithClientIDImpl) Username(claims *Claims) string {
+func (m *multiAuthenticatorImpl) Username(claims *Claims) string {
 	var username string
-	// TODO: This code does not handle the case where there are mulitple authenticators
+	// TODO: This code does not handle the case where there are multiple authenticators
 	// registered with the same issuer but different UsernameClaimTypes.
 	for _, authenticator := range m.GetAuthenticators(claims.Issuer) {
 		if username = authenticator.Username(claims); username != "" {

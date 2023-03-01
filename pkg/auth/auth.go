@@ -62,7 +62,7 @@ type Authenticator interface {
 type MultiAuthenticatorWithClientID interface {
 	Authenticator
 	GetAuthenticators(issuer string) []Authenticator
-	ListIssuersWithClientID() []IssuerWithClientID
+	ListIssuers() []string
 }
 
 // Enabled returns whether auth is enabled.
