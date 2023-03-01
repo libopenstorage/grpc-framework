@@ -61,7 +61,7 @@ type Authenticator interface {
 // and clientID.
 type MultiAuthenticatorWithClientID interface {
 	Authenticator
-	GetAuthenticator(issuer, clientID string) Authenticator
+	GetAuthenticators(issuer string) []Authenticator
 	ListIssuersWithClientID() []IssuerWithClientID
 }
 

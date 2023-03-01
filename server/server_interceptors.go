@@ -106,7 +106,7 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 		})
 		return ctx, nil
 	} else {
-		return nil, auditLogWarningf(codes.PermissionDenied, err, "Unable to authenticate token")
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to authenticate token")
 	}
 }
 
