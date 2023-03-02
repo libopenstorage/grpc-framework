@@ -20,11 +20,10 @@ import (
 	"fmt"
 	"time"
 
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/correlation"
 	grpcutil "github.com/libopenstorage/grpc-framework/pkg/grpc/util"
-
-	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/pborman/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -75,10 +74,11 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 	// Audit log
 	log := correlation.NewFunctionLogger(ctx)
 	log.Out = s.auditLogOutput
-	auditLogWarningf := func(c codes.Code, format string, a ...interface{}) error {
+	auditLogWarningf := func(c codes.Code, err error, format string, a ...interface{}) error {
 		log.WithContext(ctx).WithFields(logrus.Fields{
 			"method": "Authentication",
 			"code":   c.String(),
+			"error":  err.Error(),
 		}).Warningf(format, a...)
 		return status.Errorf(c, format, a...)
 	}
@@ -91,33 +91,22 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 	// Obtain token from metadata in the context
 	token, err = grpc_auth.AuthFromMD(ctx, ContextMetadataTokenKey)
 	if err != nil {
-		return nil, auditLogWarningf(codes.Unauthenticated, "Invalid or missing authentication token")
-	}
-
-	// Determine issuer
-	issuer, err := auth.TokenIssuer(token)
-	if err != nil {
-		return nil, auditLogWarningf(codes.Unauthenticated, "Unable to obtain token issuer from authorization token")
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Invalid or missing authentication token")
 	}
 
 	// Authenticate user
-	if authenticator, ok := s.config.Security.Authenticators[issuer]; ok {
-		var claims *auth.Claims
-		claims, err = authenticator.AuthenticateToken(ctx, token)
-		if err == nil {
-			// Add authorization information back into the context so that other
-			// functions can get access to this information.
-			// If this is in the context is how functions will know that security is enabled.
-			ctx = auth.ContextSaveUserInfo(ctx, &auth.UserInfo{
-				Username: authenticator.Username(claims),
-				Claims:   *claims,
-			})
-			return ctx, nil
-		} else {
-			return nil, auditLogWarningf(codes.PermissionDenied, "Unable to authenticate token")
-		}
+	claims, err := s.config.Security.Authenticators.AuthenticateToken(ctx, token)
+	if err == nil {
+		// Add authorization information back into the context so that other
+		// functions can get access to this information.
+		// If this is in the context is how functions will know that security is enabled.
+		ctx = auth.ContextSaveUserInfo(ctx, &auth.UserInfo{
+			Username: s.config.Security.Authenticators.Username(claims),
+			Claims:   *claims,
+		})
+		return ctx, nil
 	} else {
-		return nil, auditLogWarningf(codes.Unauthenticated, "%s is not a trusted issuer", issuer)
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to authenticate token")
 	}
 }
 
