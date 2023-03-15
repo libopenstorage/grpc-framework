@@ -7,8 +7,8 @@
 
 
 - Services
-    - [HelloGreeter](#servicehellohellogreeter)
-    - [HelloIdentity](#servicehellohelloidentity)
+    - [HelloGreeter](#servicehellov1hellogreeter)
+    - [HelloIdentity](#servicehellov1helloidentity)
   
 
 
@@ -27,10 +27,10 @@
 
 
 
-## HelloGreeter {#servicehellohellogreeter}
+## HelloGreeter {#servicehellov1hellogreeter}
 The greeting service definition.
 
-### SayHello {#methodhellohellogreetersayhello}
+### SayHello {#methodhellov1hellogreetersayhello}
 
 > **rpc** SayHello([HelloGreeterSayHelloRequest](#hellogreetersayhellorequest))
     [HelloGreeterSayHelloResponse](#hellogreetersayhelloresponse)
@@ -38,15 +38,15 @@ The greeting service definition.
 Sends a greeting
  <!-- end methods -->
 
-## HelloIdentity {#servicehellohelloidentity}
+## HelloIdentity {#servicehellov1helloidentity}
+Identification information services
 
+### ServerVersion {#methodhellov1helloidentityserverversion}
 
-### Version {#methodhellohelloidentityversion}
-
-> **rpc** Version([HelloIdentityVersionRequest](#helloidentityversionrequest))
+> **rpc** ServerVersion([HelloIdentityVersionRequest](#helloidentityversionrequest))
     [HelloIdentityVersionResponse](#helloidentityversionresponse)
 
-
+Gets server version
  <!-- end methods -->
  <!-- end services -->
 
@@ -59,7 +59,7 @@ The request message containing the user's name.
 
 | Field | Type | Description |
 | ----- | ---- | ----------- |
-| name | [ string](#string) | none |
+| name | [ string](#string) | Name to say hello to |
  <!-- end Fields -->
  <!-- end HasFields -->
 
@@ -70,7 +70,7 @@ The response message containing the greetings
 
 | Field | Type | Description |
 | ----- | ---- | ----------- |
-| message | [ string](#string) | none |
+| message | [ string](#string) | Message returned from server containing 'name' |
  <!-- end Fields -->
  <!-- end HasFields -->
 
@@ -87,7 +87,7 @@ Defines the response to version
 
 | Field | Type | Description |
 | ----- | ---- | ----------- |
-| hello_version | [ HelloVersion](#helloversion) | Hello application version |
+| server_version | [ HelloVersion](#helloversion) | Hello application version |
  <!-- end Fields -->
  <!-- end HasFields -->
 
@@ -117,7 +117,7 @@ client and server applications
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| MUST_HAVE_ZERO_VALUE | 0 | Must be set in the proto file; ignore. |
+| VERSION_UNSPECIFIED | 0 | Must be set in the proto file; ignore. |
 | MAJOR | 0 | Version major value of this specification |
 | MINOR | 0 | Version minor value of this specification |
 | PATCH | 1 | Version patch value of this specification |

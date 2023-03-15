@@ -1,6 +1,6 @@
 
 PROTO_FILE = ./api/hello.proto
-TAG = latest
+TAG = v0.0.7
 
 all: proto server client
 
@@ -27,6 +27,22 @@ proto:
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
 		quay.io/openstorage/grpc-framework:$(TAG)\
 			make docker-proto
+
+proto-lint:
+	docker run \
+		--privileged --rm \
+		-v $(shell pwd):/go/src/code \
+		-e "GOPATH=/go" \
+		-e "DOCKER_PROTO=yes" \
+		-e "PROTO_USER=$(shell id -u)" \
+		-e "PROTO_GROUP=$(shell id -g)" \
+		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
+		quay.io/openstorage/grpc-framework:$(TAG)\
+			grpcfw-lint \
+				-o $(PROTO_FILE).lint \
+				--disable-rule core::0191::proto-package \
+				--set-exit-status \
+				$(PROTO_FILE)
 
 docker-proto:
 ifndef DOCKER_PROTO

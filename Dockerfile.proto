@@ -1,11 +1,15 @@
 FROM golang
 LABEL org.opencontainers.image.authors="lpabon@purestorage.com"
 
-# VERSIONS
-# Confirm that the links are correct. Some tools change the links on newer versions
-ARG GFGOLANG=1.19.4
-ARG GFGRPCGATEWAY=2.14.0
+## VERSIONS
+## Confirm that the links are correct. Some tools change the links on newer versions
+# https://go.dev/dl/
+ARG GFGOLANG=1.19.7
+# https://github.com/grpc-ecosystem/grpc-gateway/releases
+ARG GFGRPCGATEWAY=2.15.2
+# https://github.com/pseudomuto/protoc-gen-doc/releases
 ARG GFPROTOCGENDOC=1.5.1
+# https://github.com/protocolbuffers/protobuf/releases
 ARG GFPROTOC=3.20.3
 
 # Get gRPC golang versions from here: https://grpc.io/docs/languages/go/quickstart/
@@ -71,6 +75,11 @@ RUN mkdir -p /go/src/github.com/googleapis && \
 RUN wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v${GFPROTOCGENDOC}/protoc-gen-doc_${GFPROTOCGENDOC}_linux_amd64.tar.gz && \
 	tar xzvf protoc-gen-doc_${GFPROTOCGENDOC}_linux_amd64.tar.gz && \
 	mv protoc-gen-doc /usr/local/bin
+
+##
+## Install Google AIP api-linter
+##
+RUN go install github.com/googleapis/api-linter/cmd/api-linter@latest
 
 ##
 ## grpc-framework additions
