@@ -39,13 +39,13 @@ func (h *HelloGreeter) SayHello(
 	}, nil
 }
 
-func (h *HelloGreeter) Version(
+func (h *HelloGreeter) ServerVersion(
 	ctx context.Context,
 	req *api.HelloIdentityVersionRequest,
 ) (*api.HelloIdentityVersionResponse, error) {
 	logrus.Info("Received request for version")
 	return &api.HelloIdentityVersionResponse{
-		HelloVersion: &api.HelloVersion{
+		ServerVersion: &api.HelloVersion{
 			Major: int32(api.HelloVersion_MAJOR),
 			Minor: int32(api.HelloVersion_MINOR),
 			Patch: int32(api.HelloVersion_PATCH),

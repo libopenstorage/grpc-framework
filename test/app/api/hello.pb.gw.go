@@ -65,20 +65,20 @@ func local_request_HelloGreeter_SayHello_0(ctx context.Context, marshaler runtim
 
 }
 
-func request_HelloIdentity_Version_0(ctx context.Context, marshaler runtime.Marshaler, client HelloIdentityClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_HelloIdentity_ServerVersion_0(ctx context.Context, marshaler runtime.Marshaler, client HelloIdentityClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq HelloIdentityVersionRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.Version(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ServerVersion(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_HelloIdentity_Version_0(ctx context.Context, marshaler runtime.Marshaler, server HelloIdentityServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_HelloIdentity_ServerVersion_0(ctx context.Context, marshaler runtime.Marshaler, server HelloIdentityServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq HelloIdentityVersionRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.Version(ctx, &protoReq)
+	msg, err := server.ServerVersion(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -97,7 +97,7 @@ func RegisterHelloGreeterHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.HelloGreeter/SayHello", runtime.WithHTTPPathPattern("/v1/greeter/sayhello"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.v1.HelloGreeter/SayHello", runtime.WithHTTPPathPattern("/v1/greeter:sayHello"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -123,7 +123,7 @@ func RegisterHelloGreeterHandlerServer(ctx context.Context, mux *runtime.ServeMu
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterHelloIdentityHandlerFromEndpoint instead.
 func RegisterHelloIdentityHandlerServer(ctx context.Context, mux *runtime.ServeMux, server HelloIdentityServer) error {
 
-	mux.Handle("GET", pattern_HelloIdentity_Version_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_HelloIdentity_ServerVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -131,12 +131,12 @@ func RegisterHelloIdentityHandlerServer(ctx context.Context, mux *runtime.ServeM
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.HelloIdentity/Version", runtime.WithHTTPPathPattern("/v1/identity/version"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/hello.v1.HelloIdentity/ServerVersion", runtime.WithHTTPPathPattern("/v1/identity:serverVersion"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_HelloIdentity_Version_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_HelloIdentity_ServerVersion_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -144,7 +144,7 @@ func RegisterHelloIdentityHandlerServer(ctx context.Context, mux *runtime.ServeM
 			return
 		}
 
-		forward_HelloIdentity_Version_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_HelloIdentity_ServerVersion_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -154,7 +154,7 @@ func RegisterHelloIdentityHandlerServer(ctx context.Context, mux *runtime.ServeM
 // RegisterHelloGreeterHandlerFromEndpoint is same as RegisterHelloGreeterHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterHelloGreeterHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
+	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func RegisterHelloGreeterHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/hello.HelloGreeter/SayHello", runtime.WithHTTPPathPattern("/v1/greeter/sayhello"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/hello.v1.HelloGreeter/SayHello", runtime.WithHTTPPathPattern("/v1/greeter:sayHello"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -215,7 +215,7 @@ func RegisterHelloGreeterHandlerClient(ctx context.Context, mux *runtime.ServeMu
 }
 
 var (
-	pattern_HelloGreeter_SayHello_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "greeter", "sayhello"}, ""))
+	pattern_HelloGreeter_SayHello_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "greeter"}, "sayHello"))
 )
 
 var (
@@ -225,7 +225,7 @@ var (
 // RegisterHelloIdentityHandlerFromEndpoint is same as RegisterHelloIdentityHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterHelloIdentityHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.Dial(endpoint, opts...)
+	conn, err := grpc.DialContext(ctx, endpoint, opts...)
 	if err != nil {
 		return err
 	}
@@ -260,25 +260,25 @@ func RegisterHelloIdentityHandler(ctx context.Context, mux *runtime.ServeMux, co
 // "HelloIdentityClient" to call the correct interceptors.
 func RegisterHelloIdentityHandlerClient(ctx context.Context, mux *runtime.ServeMux, client HelloIdentityClient) error {
 
-	mux.Handle("GET", pattern_HelloIdentity_Version_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_HelloIdentity_ServerVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/hello.HelloIdentity/Version", runtime.WithHTTPPathPattern("/v1/identity/version"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/hello.v1.HelloIdentity/ServerVersion", runtime.WithHTTPPathPattern("/v1/identity:serverVersion"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_HelloIdentity_Version_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_HelloIdentity_ServerVersion_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_HelloIdentity_Version_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_HelloIdentity_ServerVersion_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -286,9 +286,9 @@ func RegisterHelloIdentityHandlerClient(ctx context.Context, mux *runtime.ServeM
 }
 
 var (
-	pattern_HelloIdentity_Version_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "identity", "version"}, ""))
+	pattern_HelloIdentity_ServerVersion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "identity"}, "serverVersion"))
 )
 
 var (
-	forward_HelloIdentity_Version_0 = runtime.ForwardResponseMessage
+	forward_HelloIdentity_ServerVersion_0 = runtime.ForwardResponseMessage
 )

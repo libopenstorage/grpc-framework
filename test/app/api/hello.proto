@@ -16,11 +16,12 @@ syntax = "proto3";
 
 import "google/api/annotations.proto";
 
-package hello;
+package hello.v1;
 
 option go_package = "./api;api";
 option java_multiple_files = true;
-option java_package = "com.hello.api";
+option java_package = "com.hello.v1";
+option java_outer_classname = "HelloProto";
 
 // The greeting service definition.
 service HelloGreeter {
@@ -28,28 +29,32 @@ service HelloGreeter {
   rpc SayHello (HelloGreeterSayHelloRequest)
     returns (HelloGreeterSayHelloResponse) {
       option(google.api.http) = {
-        post: "/v1/greeter/sayhello"
+        post: "/v1/greeter:sayHello"
         body: "*"
       };
   }
 }
 
+// Identification information services
 service HelloIdentity {
-  rpc Version(HelloIdentityVersionRequest)
+  // Gets server version
+  rpc ServerVersion(HelloIdentityVersionRequest)
     returns (HelloIdentityVersionResponse) {
       option(google.api.http) = {
-        get: "/v1/identity/version"
+        get: "/v1/identity:serverVersion"
       };
     }
 }
 
 // The request message containing the user's name.
 message HelloGreeterSayHelloRequest {
+  // Name to say hello to
   string name = 1;
 }
 
 // The response message containing the greetings
 message HelloGreeterSayHelloResponse {
+  // Message returned from server containing 'name'
   string message = 1;
 }
 
@@ -60,7 +65,7 @@ message HelloIdentityVersionRequest {
 // Defines the response to version
 message HelloIdentityVersionResponse {
   // Hello application version
-  HelloVersion hello_version = 1;
+  HelloVersion server_version = 1;
 }
 
 // Hello version in Major.Minor.Patch format. The goal of this
@@ -76,7 +81,7 @@ message HelloVersion {
     option allow_alias = true;
 
     // Must be set in the proto file; ignore.
-    MUST_HAVE_ZERO_VALUE = 0;
+    VERSION_UNSPECIFIED = 0;
 
     // Version major value of this specification
     MAJOR = 0;
@@ -86,8 +91,8 @@ message HelloVersion {
     PATCH = 1;
   }
 
-  // The following cannot be set to use the enum Version because the REST
-  // Gateway would then return the string value of the enum.
+  // (-- The following cannot be set to use the enum Version because the REST --)
+  // (-- Gateway would then return the string value of the enum. --)
 
   // Version major number
   int32 major = 1;

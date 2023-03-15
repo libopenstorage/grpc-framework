@@ -36,7 +36,7 @@ func NewHelloGreeterClient(cc grpc.ClientConnInterface) HelloGreeterClient {
 
 func (c *helloGreeterClient) SayHello(ctx context.Context, in *HelloGreeterSayHelloRequest, opts ...grpc.CallOption) (*HelloGreeterSayHelloResponse, error) {
 	out := new(HelloGreeterSayHelloResponse)
-	err := c.cc.Invoke(ctx, "/hello.HelloGreeter/SayHello", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.v1.HelloGreeter/SayHello", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func _HelloGreeter_SayHello_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.HelloGreeter/SayHello",
+		FullMethod: "/hello.v1.HelloGreeter/SayHello",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(HelloGreeterServer).SayHello(ctx, req.(*HelloGreeterSayHelloRequest))
@@ -94,7 +94,7 @@ func _HelloGreeter_SayHello_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var HelloGreeter_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "hello.HelloGreeter",
+	ServiceName: "hello.v1.HelloGreeter",
 	HandlerType: (*HelloGreeterServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -110,7 +110,8 @@ var HelloGreeter_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HelloIdentityClient interface {
-	Version(ctx context.Context, in *HelloIdentityVersionRequest, opts ...grpc.CallOption) (*HelloIdentityVersionResponse, error)
+	// Gets server version
+	ServerVersion(ctx context.Context, in *HelloIdentityVersionRequest, opts ...grpc.CallOption) (*HelloIdentityVersionResponse, error)
 }
 
 type helloIdentityClient struct {
@@ -121,9 +122,9 @@ func NewHelloIdentityClient(cc grpc.ClientConnInterface) HelloIdentityClient {
 	return &helloIdentityClient{cc}
 }
 
-func (c *helloIdentityClient) Version(ctx context.Context, in *HelloIdentityVersionRequest, opts ...grpc.CallOption) (*HelloIdentityVersionResponse, error) {
+func (c *helloIdentityClient) ServerVersion(ctx context.Context, in *HelloIdentityVersionRequest, opts ...grpc.CallOption) (*HelloIdentityVersionResponse, error) {
 	out := new(HelloIdentityVersionResponse)
-	err := c.cc.Invoke(ctx, "/hello.HelloIdentity/Version", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/hello.v1.HelloIdentity/ServerVersion", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,8 @@ func (c *helloIdentityClient) Version(ctx context.Context, in *HelloIdentityVers
 // All implementations must embed UnimplementedHelloIdentityServer
 // for forward compatibility
 type HelloIdentityServer interface {
-	Version(context.Context, *HelloIdentityVersionRequest) (*HelloIdentityVersionResponse, error)
+	// Gets server version
+	ServerVersion(context.Context, *HelloIdentityVersionRequest) (*HelloIdentityVersionResponse, error)
 	mustEmbedUnimplementedHelloIdentityServer()
 }
 
@@ -142,8 +144,8 @@ type HelloIdentityServer interface {
 type UnimplementedHelloIdentityServer struct {
 }
 
-func (UnimplementedHelloIdentityServer) Version(context.Context, *HelloIdentityVersionRequest) (*HelloIdentityVersionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Version not implemented")
+func (UnimplementedHelloIdentityServer) ServerVersion(context.Context, *HelloIdentityVersionRequest) (*HelloIdentityVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ServerVersion not implemented")
 }
 func (UnimplementedHelloIdentityServer) mustEmbedUnimplementedHelloIdentityServer() {}
 
@@ -158,20 +160,20 @@ func RegisterHelloIdentityServer(s grpc.ServiceRegistrar, srv HelloIdentityServe
 	s.RegisterService(&HelloIdentity_ServiceDesc, srv)
 }
 
-func _HelloIdentity_Version_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _HelloIdentity_ServerVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HelloIdentityVersionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HelloIdentityServer).Version(ctx, in)
+		return srv.(HelloIdentityServer).ServerVersion(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/hello.HelloIdentity/Version",
+		FullMethod: "/hello.v1.HelloIdentity/ServerVersion",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HelloIdentityServer).Version(ctx, req.(*HelloIdentityVersionRequest))
+		return srv.(HelloIdentityServer).ServerVersion(ctx, req.(*HelloIdentityVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -180,12 +182,12 @@ func _HelloIdentity_Version_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var HelloIdentity_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "hello.HelloIdentity",
+	ServiceName: "hello.v1.HelloIdentity",
 	HandlerType: (*HelloIdentityServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Version",
-			Handler:    _HelloIdentity_Version_Handler,
+			MethodName: "ServerVersion",
+			Handler:    _HelloIdentity_ServerVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -13,7 +13,7 @@
         }
     ],
     "paths": {
-        "/v1/greeter/sayhello": {
+        "/v1/greeter:sayHello": {
             "post": {
                 "summary": "Sends a greeting",
                 "operationId": "HelloGreeter_SayHello",
@@ -23,7 +23,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/helloHelloGreeterSayHelloResponse"
+                                    "$ref": "#/components/schemas/v1HelloGreeterSayHelloResponse"
                                 }
                             }
                         }
@@ -43,7 +43,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/helloHelloGreeterSayHelloRequest"
+                                "$ref": "#/components/schemas/v1HelloGreeterSayHelloRequest"
                             }
                         }
                     },
@@ -55,16 +55,17 @@
                 ]
             }
         },
-        "/v1/identity/version": {
+        "/v1/identity:serverVersion": {
             "get": {
-                "operationId": "HelloIdentity_Version",
+                "summary": "Gets server version",
+                "operationId": "HelloIdentity_ServerVersion",
                 "responses": {
                     "200": {
                         "description": "A successful response.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/helloHelloIdentityVersionResponse"
+                                    "$ref": "#/components/schemas/v1HelloIdentityVersionResponse"
                                 }
                             }
                         }
@@ -88,58 +89,6 @@
     },
     "components": {
         "schemas": {
-            "helloHelloGreeterSayHelloRequest": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "description": "The request message containing the user's name."
-            },
-            "helloHelloGreeterSayHelloResponse": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string"
-                    }
-                },
-                "title": "The response message containing the greetings"
-            },
-            "helloHelloIdentityVersionResponse": {
-                "type": "object",
-                "properties": {
-                    "helloVersion": {
-                        "$ref": "#/components/schemas/helloHelloVersion"
-                    }
-                },
-                "title": "Defines the response to version"
-            },
-            "helloHelloVersion": {
-                "type": "object",
-                "properties": {
-                    "major": {
-                        "type": "integer",
-                        "format": "int32",
-                        "title": "Version major number"
-                    },
-                    "minor": {
-                        "type": "integer",
-                        "format": "int32",
-                        "title": "Version minor number"
-                    },
-                    "patch": {
-                        "type": "integer",
-                        "format": "int32",
-                        "title": "Version patch number"
-                    },
-                    "version": {
-                        "type": "string",
-                        "description": "String representation of the version. Must be\nin `major.minor.patch` format."
-                    }
-                },
-                "description": "Hello version in Major.Minor.Patch format. The goal of this\nmessage is to provide clients a method to determine the server\nand client versions."
-            },
             "protobufAny": {
                 "type": "object",
                 "properties": {
@@ -166,6 +115,60 @@
                         }
                     }
                 }
+            },
+            "v1HelloGreeterSayHelloRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name to say hello to"
+                    }
+                },
+                "description": "The request message containing the user's name."
+            },
+            "v1HelloGreeterSayHelloResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message returned from server containing 'name'"
+                    }
+                },
+                "title": "The response message containing the greetings"
+            },
+            "v1HelloIdentityVersionResponse": {
+                "type": "object",
+                "properties": {
+                    "serverVersion": {
+                        "$ref": "#/components/schemas/v1HelloVersion"
+                    }
+                },
+                "title": "Defines the response to version"
+            },
+            "v1HelloVersion": {
+                "type": "object",
+                "properties": {
+                    "major": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version major number"
+                    },
+                    "minor": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version minor number"
+                    },
+                    "patch": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version patch number"
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "String representation of the version. Must be\nin `major.minor.patch` format."
+                    }
+                },
+                "description": "Hello version in Major.Minor.Patch format. The goal of this\nmessage is to provide clients a method to determine the server\nand client versions."
             }
         }
     }

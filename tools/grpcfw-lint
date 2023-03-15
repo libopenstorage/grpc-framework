@@ -1,0 +1,7 @@
+#!/bin/bash
+PROTOS_PATH=${GOPATH}/src
+
+	api-linter -I . \
+		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
+		-I $PROTOS_PATH/github.com/googleapis/googleapis \
+		$@
