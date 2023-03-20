@@ -24,8 +24,9 @@ import (
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/auth/role"
 	"github.com/rs/cors"
-	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
+
+	"golang.org/x/time/rate"
 )
 
 // TLSConfig points to the cert files needed for HTTPS
@@ -42,10 +43,13 @@ type SecurityConfig struct {
 	Role role.RoleManager
 	// Tls configuration
 	Tls *TLSConfig
-	// Authenticators is an instance of MultiAuthenticatorWithClientID
-	// The MultiAuthenticator interface allows managing multiple
-	// authenticators. Each authenticator is tied to a unique combination of issuer + clientID.
-	Authenticators auth.MultiAuthenticatorWithClientID
+	// Authenticators per issuer. You can register multple authenticators
+	// based on the "iss" string in the string. For example:
+	// map[string]auth.Authenticator {
+	//     "https://accounts.google.com": googleOidc,
+	//     "openstorage-sdk-auth: selfSigned,
+	// }
+	Authenticators map[string]auth.Authenticator
 }
 
 type RestServerPrometheusConfig struct {

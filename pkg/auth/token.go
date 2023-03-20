@@ -82,21 +82,6 @@ func TokenIssuer(rawtoken string) (string, error) {
 	}
 }
 
-// TokenAudience returns the audience from the raw JWT token.
-func TokenAudience(rawtoken string) (string, error) {
-	claims, err := TokenClaims(rawtoken)
-	if err != nil {
-		return "", err
-	}
-
-	// Return issuer
-	if len(claims.Audience) != 0 {
-		return claims.Audience, nil
-	} else {
-		return "", fmt.Errorf("audience was not specified in the token")
-	}
-}
-
 // IsJwtToken returns true if the provided string is a valid jwt token
 func IsJwtToken(authstring string) bool {
 	_, _, err := new(jwt.Parser).ParseUnverified(authstring, jwt.MapClaims{})
@@ -118,7 +103,6 @@ func Token(
 		"roles": claims.Roles,
 		"iat":   time.Now().Add(-options.IATSubtract).Unix(),
 		"exp":   options.Expiration,
-		"aud":   claims.Audience,
 	}
 	if claims.Groups != nil {
 		mapclaims["groups"] = claims.Groups

@@ -36,8 +36,6 @@ type Claims struct {
 	Name string `json:"name" yaml:"name"`
 	// Account email
 	Email string `json:"email" yaml:"email"`
-	// Audience is the intended audience for this claim
-	Audience string `json:"aud" yaml:"aud"`
 	// Roles of this account
 	Roles []string `json:"roles,omitempty" yaml:"roles,omitempty"`
 	// (optional) Groups in which this account is part of
