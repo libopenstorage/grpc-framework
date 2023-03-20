@@ -23,6 +23,7 @@ import (
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/correlation"
 	grpcutil "github.com/libopenstorage/grpc-framework/pkg/grpc/util"
+	"github.com/libopenstorage/grpc-framework/pkg/util"
 
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/pborman/uuid"
@@ -94,31 +95,14 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 		return nil, auditLogWarningf(codes.Unauthenticated, "Invalid or missing authentication token")
 	}
 
-	// Determine issuer
-	issuer, err := auth.TokenIssuer(token)
+	// Authenticate user
+	ctx, err = s.config.Security.AuthenticatorManager.AuthenticateToken(ctx, token)
 	if err != nil {
-		return nil, auditLogWarningf(codes.Unauthenticated, "Unable to obtain token issuer from authorization token")
+		s := util.FromError(err)
+		return nil, auditLogWarningf(s.Code(), s.Message())
 	}
 
-	// Authenticate user
-	if authenticator, ok := s.config.Security.Authenticators[issuer]; ok {
-		var claims *auth.Claims
-		claims, err = authenticator.AuthenticateToken(ctx, token)
-		if err == nil {
-			// Add authorization information back into the context so that other
-			// functions can get access to this information.
-			// If this is in the context is how functions will know that security is enabled.
-			ctx = auth.ContextSaveUserInfo(ctx, &auth.UserInfo{
-				Username: authenticator.Username(claims),
-				Claims:   *claims,
-			})
-			return ctx, nil
-		} else {
-			return nil, auditLogWarningf(codes.PermissionDenied, "Unable to authenticate token")
-		}
-	} else {
-		return nil, auditLogWarningf(codes.Unauthenticated, "%s is not a trusted issuer", issuer)
-	}
+	return ctx, nil
 }
 
 func (s *GrpcFrameworkServer) loggerInterceptor(ctx context.Context, handler func() error, fullMethod string) error {

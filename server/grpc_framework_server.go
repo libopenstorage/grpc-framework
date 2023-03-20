@@ -69,9 +69,8 @@ func NewGrpcFrameworkServer(config *ServerConfig) (*GrpcFrameworkServer, error) 
 		"name": name,
 	})
 
-	// Setup authentication
-	for issuer := range config.Security.Authenticators {
-		log.Infof("Authentication enabled for issuer: %s", issuer)
+	if config.Security.AuthenticatorManager.Len() > 0 {
+		config.Security.AuthenticatorManager.Log(log)
 
 		// Check the necessary security config options are set. Authentication is enabled. Therefore,
 		// either RoleManager must be provided (this implies use of the default authZ)
@@ -139,7 +138,7 @@ func (s *GrpcFrameworkServer) Start() error {
 	// use caller's authN interceptor if provided
 	if s.config.AuthNUnaryInterceptor != nil {
 		unaryInterceptors = append(unaryInterceptors, s.config.AuthNUnaryInterceptor)
-	} else if len(s.config.Security.Authenticators) > 0 {
+	} else if s.config.Security.AuthenticatorManager.Len() > 0 {
 		// use the default authN interceptor
 		unaryInterceptors = append(unaryInterceptors, grpc_auth.UnaryServerInterceptor(s.auth))
 	}
@@ -152,7 +151,7 @@ func (s *GrpcFrameworkServer) Start() error {
 		// plug the caller-supplied authChecker into our external authorizer framework
 		unaryInterceptors = append(unaryInterceptors, s.externalAuthorizerUnaryInterceptor(
 			s.config.ExternalAuthZChecker, s.config.InsecureNoAuthNAuthZReqs, s.config.InsecureNoAuthZReqs))
-	} else if len(s.config.Security.Authenticators) > 0 {
+	} else if s.config.Security.AuthenticatorManager.Len() > 0 {
 		// use our default authZ interceptor
 		unaryInterceptors = append(unaryInterceptors, s.authorizationServerUnaryInterceptor)
 	}
@@ -171,7 +170,7 @@ func (s *GrpcFrameworkServer) Start() error {
 	// use caller's authN interceptor if provided
 	if s.config.AuthNStreamInterceptor != nil {
 		streamInterceptors = append(streamInterceptors, s.config.AuthNStreamInterceptor)
-	} else if len(s.config.Security.Authenticators) > 0 {
+	} else if s.config.Security.AuthenticatorManager.Len() > 0 {
 		// use the default authN interceptor
 		streamInterceptors = append(streamInterceptors, grpc_auth.StreamServerInterceptor(s.auth))
 	}
@@ -184,7 +183,7 @@ func (s *GrpcFrameworkServer) Start() error {
 		// plug the caller-supplied authChecker into our external authorizer interceptor
 		streamInterceptors = append(streamInterceptors, s.externalAuthorizerStreamInterceptor(
 			s.config.ExternalAuthZChecker, s.config.InsecureNoAuthNAuthZReqs, s.config.InsecureNoAuthZReqs))
-	} else if len(s.config.Security.Authenticators) > 0 {
+	} else if s.config.Security.AuthenticatorManager.Len() > 0 {
 		// use our default authZ interceptor
 		streamInterceptors = append(streamInterceptors, s.authorizationServerStreamInterceptor)
 	}

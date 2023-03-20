@@ -43,13 +43,9 @@ type SecurityConfig struct {
 	Role role.RoleManager
 	// Tls configuration
 	Tls *TLSConfig
-	// Authenticators per issuer. You can register multple authenticators
-	// based on the "iss" string in the string. For example:
-	// map[string]auth.Authenticator {
-	//     "https://accounts.google.com": googleOidc,
-	//     "openstorage-sdk-auth: selfSigned,
-	// }
-	Authenticators map[string]auth.Authenticator
+	// Authenticators per issuer
+	// You can supply your own or use AuthenticatorManagerDefault
+	AuthenticatorManager auth.AuthenticatorManager
 }
 
 type RestServerPrometheusConfig struct {
@@ -292,4 +288,24 @@ func (c *ServerConfig) WithDefaultRateLimiters() *ServerConfig {
 	return c.
 		WithRateLimiter(DefaultRateLimiter).
 		WithRateLimiterPerUser(DefaultRateLimiterPerUser)
+}
+
+func (c *ServerConfig) WithDefaultGenericRoleManager() *ServerConfig {
+	if c.Security == nil {
+		c.Security = &SecurityConfig{}
+	}
+
+	c.Security.Role = role.NewDefaultGenericRoleManager()
+
+	return c
+}
+
+func (c *ServerConfig) WithNewDefaultAuthenticatorManager() *ServerConfig {
+	if c.Security == nil {
+		c.Security = &SecurityConfig{}
+	}
+
+	c.Security.AuthenticatorManager = auth.NewAuthenticatorManagerDefault()
+
+	return c
 }

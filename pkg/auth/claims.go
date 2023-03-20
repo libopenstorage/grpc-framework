@@ -32,6 +32,8 @@ type Claims struct {
 	Issuer string `json:"iss"`
 	// Subject identifier. Unique ID of this account
 	Subject string `json:"sub" yaml:"sub"`
+	// Audience is the intended audience for this claim
+	Audience string `json:"aud,omitempty" yaml:"aud,omitempty"`
 	// Account name
 	Name string `json:"name" yaml:"name"`
 	// Account email

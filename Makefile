@@ -37,7 +37,10 @@ testapp:
 	$(MAKE) -C test/app proto-lint
 	$(MAKE) -C test/app
 
-verify: vet fmt test testapp
+testapp-verify: testapp
+	./hack/client-server-test.sh
+
+verify: vet fmt test testapp-verify
 
 travis-verify: pr-verify verify
 
@@ -74,4 +77,4 @@ doc-serve: doc-env
 
 .PHONY: clean proto go-mod-publish travis-verify verify \
 	testapp test pr-verify errcheck vet fmt build \
-	doc-env doc-build doc-serve container
+	doc-env doc-build doc-serve container testapp-verify

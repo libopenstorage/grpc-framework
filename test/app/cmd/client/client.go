@@ -7,11 +7,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/libopenstorage/grpc-framework/pkg/auth"
+	"github.com/libopenstorage/grpc-framework/pkg/auth/role"
 	"github.com/libopenstorage/grpc-framework/test/app/api"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -23,24 +27,48 @@ const (
 
 var (
 	useTls  = flag.Bool("usetls", false, "Connect to server using TLS. Loads CA from the system")
-	token   = flag.String("token", "", "Authorization token if any")
 	address = flag.String("address", "127.0.0.1:9009", "Address to server as <address>:<port>")
 )
 
-type OpenStorageSdkToken struct{}
+type OpenStorageSdkToken struct {
+	token  string
+	useTls bool
+}
 
 func (t OpenStorageSdkToken) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
 	return map[string]string{
-		"authorization": "bearer " + *token,
+		"authorization": "bearer " + t.token,
 	}, nil
 }
 
 func (t OpenStorageSdkToken) RequireTransportSecurity() bool {
-	return *useTls
+	return t.useTls
 }
 
 func main() {
 	flag.Parse()
+
+	// Generate a token
+	//
+	// NORMALLY THIS IS NOT DONE HERE. The client is *given* a token
+	// THIS IS HERE JUST AS A DEMO
+	sign, err := auth.NewSignatureSharedSecret("mysecret")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	claims := &auth.Claims{
+		Issuer:  "myissuer",
+		Subject: "myclient",
+		Email:   "myemail",
+		Name:    "myname",
+		Roles:   []string{role.SystemAdminRoleName},
+	}
+	token, err := auth.Token(claims, sign, &auth.Options{
+		Expiration: time.Now().Add(5 * time.Minute).Unix(),
+	})
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	// There are two ways to setup a token:
 	//   - One is to setup a client interceptor which adds the token
@@ -56,7 +84,9 @@ func main() {
 	//
 	//   To accomplish this, we first need to create an object that satisfies the
 	//   interface needed by grpc.WithPerRPCCredentials(..)
-	contextToken := OpenStorageSdkToken{}
+	contextToken := OpenStorageSdkToken{
+		token: token,
+	}
 
 	dialOptions := []grpc.DialOption{grpc.WithInsecure()}
 	if *useTls {
@@ -71,10 +101,8 @@ func main() {
 		)}
 	}
 
-	if len(*token) != 0 {
-		// Add token interceptor
-		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(contextToken))
-	}
+	// Add token interceptor to add the token to all the calls
+	dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(contextToken))
 
 	conn, err := grpc.Dial(*address, dialOptions...)
 	if err != nil {

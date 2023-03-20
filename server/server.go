@@ -20,6 +20,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	grpcserver "github.com/libopenstorage/grpc-framework/pkg/grpc/server"
 	"github.com/libopenstorage/grpc-framework/pkg/util"
 	"github.com/sirupsen/logrus"
@@ -60,7 +61,9 @@ func New(config *ServerConfig) (*Server, error) {
 
 	// If no security set, initialize the object as empty
 	if config.Security == nil {
-		config.Security = &SecurityConfig{}
+		config.Security = &SecurityConfig{
+			AuthenticatorManager: auth.NewAuthenticatorManagerDefault(),
+		}
 	}
 
 	// Check if the socket is provided to enable the REST gateway to communicate

@@ -18,8 +18,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/util"
 	"github.com/libopenstorage/grpc-framework/server"
 	"github.com/libopenstorage/grpc-framework/test/app/api"
@@ -55,6 +57,18 @@ func main() {
 		WithServerUnaryInterceptors(
 			helloWorldInterceptor,
 		)
+
+	// Add Security
+	config.
+		WithNewDefaultAuthenticatorManager().
+		WithDefaultGenericRoleManager()
+	authenticator, err := auth.NewJwtAuthenticator(&auth.JwtAuthConfig{
+		SharedSecret: []byte("mysecret"),
+	})
+	if err != nil {
+		log.Fatalf("unable to create shared key authenticator")
+	}
+	config.Security.AuthenticatorManager.AddAuthenticatorForIssuer("myissuer", authenticator)
 
 	// Create grpc framework server
 	os.Remove(helloSocket)

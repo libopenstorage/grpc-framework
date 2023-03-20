@@ -20,6 +20,7 @@ import (
 	"context"
 
 	"github.com/libopenstorage/grpc-framework/pkg/correlation"
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -44,6 +45,41 @@ var (
 		return systemTokenInst
 	}
 )
+
+// AuthenticatorKey is the hash key used to get a specific authenticator
+type AuthenticatorKey struct {
+	// Issuer is the issuer of the token to match for a speific authenticator.
+	// This value is *required*
+	Issuer string
+	// Audience is the value to match to the token 'aud' which maps to a
+	// specific authenticator.
+	// This value is (optional)
+	Audience string
+}
+
+// AuthenticatorManager interface groups token validators to help authenticate tokens
+type AuthenticatorManager interface {
+	// AuthenticateToken authenticates the token and modifies the context with
+	// the user information
+	AuthenticateToken(context.Context, string) (context.Context, error)
+
+	// AddAuthenticator adds an authenticator to the manager
+	// for a specific issuer and audience
+	AddAuthenticator(issuer string, audience string, a Authenticator) error
+
+	// AddAuthenticatorWithKey adds an authenticator to the manager using a Key
+	AddAuthenticatorWithKey(AuthenticatorKey, Authenticator) error
+
+	// AddAuthenticatorForIssuer adds an authenticator to the manager
+	// for a specific issuer only and does not include an audidence
+	AddAuthenticatorForIssuer(string, Authenticator) error
+
+	// Len returns the number of authenticators being managed
+	Len() int
+
+	// Log prints the authenticators to the log
+	Log(*logrus.Entry)
+}
 
 // Authenticator interface validates and extracts the claims from a raw token
 type Authenticator interface {

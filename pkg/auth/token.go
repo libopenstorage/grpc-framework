@@ -82,6 +82,22 @@ func TokenIssuer(rawtoken string) (string, error) {
 	}
 }
 
+// TokenAudience returns the 'aud' for the raw JWT token or empty
+// string if none found.
+func TokenAudience(rawtoken string) (string, error) {
+	claims, err := TokenClaims(rawtoken)
+	if err != nil {
+		return "", err
+	}
+
+	// Return issuer
+	if len(claims.Audience) != 0 {
+		return claims.Audience, nil
+	} else {
+		return "", nil
+	}
+}
+
 // IsJwtToken returns true if the provided string is a valid jwt token
 func IsJwtToken(authstring string) bool {
 	_, _, err := new(jwt.Parser).ParseUnverified(authstring, jwt.MapClaims{})
@@ -103,6 +119,9 @@ func Token(
 		"roles": claims.Roles,
 		"iat":   time.Now().Add(-options.IATSubtract).Unix(),
 		"exp":   options.Expiration,
+	}
+	if claims.Audience != "" {
+		mapclaims["aud"] = claims.Audience
 	}
 	if claims.Groups != nil {
 		mapclaims["groups"] = claims.Groups
