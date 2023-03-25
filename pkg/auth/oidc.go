@@ -61,7 +61,7 @@ func NewOIDCAuthenticator(config *OIDCAuthConfig) (*OIDCAuthenticator, error) {
 
 	p, err := oidc.NewProvider(ctx, config.Issuer)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to communicate with OIDC provider %s: %v",
+		return nil, fmt.Errorf("unable to communicate with OIDC provider %s: %v",
 			config.Issuer,
 			err)
 	}
@@ -84,27 +84,22 @@ func NewOIDCAuthenticator(config *OIDCAuthConfig) (*OIDCAuthenticator, error) {
 func (o *OIDCAuthenticator) AuthenticateToken(ctx context.Context, rawtoken string) (*Claims, error) {
 	idToken, err := o.verifier.Verify(ctx, rawtoken)
 	if err != nil {
-		return nil, fmt.Errorf("Token failed validation: %v", err)
+		return nil, fmt.Errorf("token failed validation: %v", err)
 	}
 
 	// Check for required claims
 	var claims map[string]interface{}
 	if err := idToken.Claims(&claims); err != nil {
-		return nil, fmt.Errorf("Unable to get claim map from token: %v", err)
+		return nil, fmt.Errorf("unable to get claim map from token: %v", err)
 	}
 	for _, requiredClaim := range requiredClaims {
 		if _, ok := claims[requiredClaim]; !ok {
 			// Claim missing
-			return nil, fmt.Errorf("Required claim %v missing from token", requiredClaim)
+			return nil, fmt.Errorf("required claim %v missing from token", requiredClaim)
 		}
 	}
 
 	return o.parseClaims(claims)
-}
-
-// Username returns the configured unique id of the user
-func (o *OIDCAuthenticator) Username(claims *Claims) string {
-	return getUsername(o.usernameClaim, claims)
 }
 
 // This will let us unit test this function without having a real OIDC
@@ -125,18 +120,17 @@ func (o *OIDCAuthenticator) parseClaims(claims map[string]interface{}) (*Claims,
 	// Marshal into byte stream so that we can unmarshal into SDK Claims
 	cbytes, err := json.Marshal(claims)
 	if err != nil {
-		return nil, fmt.Errorf("Internal error, unable to re-encode OIDC token claims: %v", err)
+		return nil, fmt.Errorf("internal error, unable to re-encode OIDC token claims: %v", err)
 	}
 
 	// Return claims
 	var sdkClaims Claims
 	if err := json.Unmarshal(cbytes, &sdkClaims); err != nil {
-		return nil, fmt.Errorf("Unable to get claims from token: %v", err)
+		return nil, fmt.Errorf("unable to get claims from token: %v", err)
 	}
-
-	if err := validateUsername(o.usernameClaim, &sdkClaims); err != nil {
+	sdkClaims.UsernameClaim = o.usernameClaim
+	if err := sdkClaims.ValidateUsername(); err != nil {
 		return nil, err
 	}
-
 	return &sdkClaims, nil
 }

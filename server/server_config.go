@@ -42,10 +42,11 @@ type SecurityConfig struct {
 	Role role.RoleManager
 	// Tls configuration
 	Tls *TLSConfig
-	// Authenticators is an instance of MultiAuthenticatorWithClientID
-	// The MultiAuthenticator interface allows managing multiple
-	// authenticators. Each authenticator is tied to a unique combination of issuer + clientID.
-	Authenticators auth.MultiAuthenticatorWithClientID
+	// Authenticators is a map of Authenticators by issuer which is key in the map.
+	// If there are multiple authenticators with the same issuer (e.g. using different
+	// client IDs), use NewIteratingMultiAuthenticator or NewMultiAuthenticatorByClientID and
+	// then, add the returned multi-authenticator to this map.
+	Authenticators map[string]auth.Authenticator
 }
 
 type RestServerPrometheusConfig struct {

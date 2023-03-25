@@ -49,20 +49,6 @@ var (
 type Authenticator interface {
 	// AuthenticateToken validates the token and returns the claims
 	AuthenticateToken(context.Context, string) (*Claims, error)
-
-	// Username returns the unique id according to the configuration. Default
-	// it will return the value for "sub" in the token claims, but it can be
-	// configured to return the email or name as the unique id.
-	Username(*Claims) string
-}
-
-// MultiAuthenticatorWithClientID is a wrapper over the Authenticator interface
-// to manage multiple such authenticators based on the unique combination of issuer
-// and clientID.
-type MultiAuthenticatorWithClientID interface {
-	Authenticator
-	GetAuthenticators(issuer string) []Authenticator
-	ListIssuers() []string
 }
 
 // Enabled returns whether auth is enabled.

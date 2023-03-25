@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClaims(t *testing.T) {
@@ -30,11 +31,28 @@ func TestClaims(t *testing.T) {
 	}
 
 	// Check getUsername for correctness
-	un := getUsername(UsernameClaimTypeEmail, claims)
+
+	// default claim type is sub
+	un, err := claims.GetUsername()
+	assert.NoError(t, err)
+	assert.Equal(t, un, subject)
+
+	// claim type = email
+	claims.UsernameClaim = UsernameClaimTypeEmail
+	un, err = claims.GetUsername()
+	assert.NoError(t, err)
 	assert.Equal(t, un, email)
-	un = getUsername(UsernameClaimTypeName, claims)
+
+	// claim type = name
+	claims.UsernameClaim = UsernameClaimTypeName
+	un, err = claims.GetUsername()
+	assert.NoError(t, err)
 	assert.Equal(t, un, name)
-	un = getUsername(UsernameClaimTypeSubject, claims)
+
+	// claim type = sub
+	claims.UsernameClaim = UsernameClaimTypeSubject
+	un, err = claims.GetUsername()
+	assert.NoError(t, err)
 	assert.Equal(t, un, subject)
 }
 
@@ -58,10 +76,56 @@ func TestValidateUsername(t *testing.T) {
 		UsernameClaimTypeDefault,
 	}
 	for _, unType := range typesToTest {
-		err := validateUsername(unType, goodClaims)
+		goodClaims.UsernameClaim = unType
+		err := goodClaims.ValidateUsername()
 		assert.NoError(t, err)
 
-		err = validateUsername(unType, badClaims)
+		badClaims.UsernameClaim = unType
+		err = badClaims.ValidateUsername()
 		assert.Error(t, err)
 	}
+}
+
+func TestGetAudience(t *testing.T) {
+	claims := &Claims{}
+
+	// no audience
+	actual, err := claims.GetAudience()
+	require.NoError(t, err)
+	require.Empty(t, actual)
+
+	// string
+	claims.Audience = "1"
+	actual, err = claims.GetAudience()
+	require.NoError(t, err)
+	require.Equal(t, []string{"1"}, actual)
+
+	// []string single value
+	actual, err = claims.GetAudience()
+	require.NoError(t, err)
+	require.Equal(t, []string{"1"}, actual)
+
+	// []string with multiple values
+	claims.Audience = []string{"1", "2"}
+	actual, err = claims.GetAudience()
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2"}, actual)
+
+	// []interface{}
+	claims.Audience = []interface{}{"1", "2", "3"}
+	actual, err = claims.GetAudience()
+	require.NoError(t, err)
+	require.Equal(t, []string{"1", "2", "3"}, actual)
+
+	// wrong type: int
+	claims.Audience = 1
+	actual, err = claims.GetAudience()
+	require.Error(t, err)
+	require.Nil(t, actual)
+
+	// wrong type: []interface{} with int
+	claims.Audience = []interface{}{1}
+	actual, err = claims.GetAudience()
+	require.Error(t, err)
+	require.Nil(t, actual)
 }
