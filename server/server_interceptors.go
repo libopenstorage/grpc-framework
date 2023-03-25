@@ -68,9 +68,6 @@ func (s *GrpcFrameworkServer) rwlockStreamIntercepter(
 
 // Authenticate user and add authorization information back in the context
 func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error) {
-	var token string
-	var err error
-
 	// Audit log
 	log := correlation.NewFunctionLogger(ctx)
 	log.Out = s.auditLogOutput
@@ -89,25 +86,37 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 	}
 
 	// Obtain token from metadata in the context
-	token, err = grpc_auth.AuthFromMD(ctx, ContextMetadataTokenKey)
+	token, err := grpc_auth.AuthFromMD(ctx, ContextMetadataTokenKey)
 	if err != nil {
 		return nil, auditLogWarningf(codes.Unauthenticated, err, "Invalid or missing authentication token")
 	}
 
-	// Authenticate user
-	claims, err := s.config.Security.Authenticators.AuthenticateToken(ctx, token)
-	if err == nil {
-		// Add authorization information back into the context so that other
-		// functions can get access to this information.
-		// If this is in the context is how functions will know that security is enabled.
-		ctx = auth.ContextSaveUserInfo(ctx, &auth.UserInfo{
-			Username: s.config.Security.Authenticators.Username(claims),
-			Claims:   *claims,
-		})
-		return ctx, nil
-	} else {
-		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to authenticate token")
+	// Determine issuer
+	issuer, err := auth.TokenIssuer(token)
+	if err != nil {
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to obtain token issuer from authorization token")
 	}
+
+	// Authenticate user
+	authenticator, ok := s.config.Security.Authenticators[issuer]
+	if !ok {
+		return nil, auditLogWarningf(codes.Unauthenticated, nil, "%s is not a trusted issuer", issuer)
+	}
+	claims, err := authenticator.AuthenticateToken(ctx, token)
+	if err != nil {
+		return nil, auditLogWarningf(codes.PermissionDenied, err, "Unable to authenticate token")
+	}
+	username, err := claims.GetUsername()
+	if err != nil {
+		return nil, auditLogWarningf(codes.PermissionDenied, err, "Unable to get username from token")
+	}
+	// Add authorization information back into the context so that other
+	// functions can get access to this information.
+	// If this is in the context is how functions will know that security is enabled.
+	return auth.ContextSaveUserInfo(ctx, &auth.UserInfo{
+		Username: username,
+		Claims:   *claims,
+	}), nil
 }
 
 func (s *GrpcFrameworkServer) loggerInterceptor(ctx context.Context, handler func() error, fullMethod string) error {

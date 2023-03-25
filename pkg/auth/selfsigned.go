@@ -51,14 +51,14 @@ type JwtAuthenticator struct {
 func NewJwtAuthenticator(config *JwtAuthConfig) (*JwtAuthenticator, error) {
 
 	if config == nil {
-		return nil, fmt.Errorf("Must provide configuration")
+		return nil, fmt.Errorf("must provide configuration")
 	}
 
 	// Check at least one is set
 	if len(config.SharedSecret) == 0 &&
 		len(config.RsaPublicPem) == 0 &&
 		len(config.ECDSPublicPem) == 0 {
-		return nil, fmt.Errorf("Server was passed empty authentication information with no shared secret or pem files set")
+		return nil, fmt.Errorf("server was passed empty authentication information with no shared secret or pem files set")
 	}
 
 	authenticator := &JwtAuthenticator{
@@ -73,13 +73,13 @@ func NewJwtAuthenticator(config *JwtAuthConfig) (*JwtAuthenticator, error) {
 	if len(config.RsaPublicPem) != 0 {
 		authenticator.rsaKey, err = jwt.ParseRSAPublicKeyFromPEM(config.RsaPublicPem)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse rsa public key: %v", err)
+			return nil, fmt.Errorf("unable to parse rsa public key: %w", err)
 		}
 	}
 	if len(config.ECDSPublicPem) != 0 {
 		authenticator.ecdsKey, err = jwt.ParseECPublicKeyFromPEM(config.ECDSPublicPem)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse ecds public key: %v", err)
+			return nil, fmt.Errorf("unable to parse ecds public key: %w", err)
 		}
 	}
 
@@ -104,27 +104,27 @@ func (j *JwtAuthenticator) AuthenticateToken(ctx context.Context, rawtoken strin
 			// HS256, HS384, or HS512
 			return j.sharedSecretKey, nil
 		}
-		return nil, fmt.Errorf("Unknown token algorithm: %s", token.Method.Alg())
+		return nil, fmt.Errorf("unknown token algorithm: %s", token.Method.Alg())
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	if !token.Valid {
-		return nil, fmt.Errorf("Token failed validation")
+		return nil, fmt.Errorf("token failed validation")
 	}
 
 	// Get claims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if claims == nil || !ok {
-		return nil, fmt.Errorf("No claims found in token")
+		return nil, fmt.Errorf("no claims found in token")
 	}
 
 	// Check for required claims
 	for _, requiredClaim := range requiredClaims {
 		if _, ok := claims[requiredClaim]; !ok {
 			// Claim missing
-			return nil, fmt.Errorf("Required claim %v missing from token", requiredClaim)
+			return nil, fmt.Errorf("required claim %v missing from token", requiredClaim)
 		}
 	}
 
@@ -134,21 +134,16 @@ func (j *JwtAuthenticator) AuthenticateToken(ctx context.Context, rawtoken strin
 	parts := strings.Split(token.Raw, ".")
 	claimBytes, err := jwt.DecodeSegment(parts[1])
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode claims: %v", err)
+		return nil, fmt.Errorf("failed to decode claims: %w", err)
 	}
 	var sdkClaims Claims
 	err = json.Unmarshal(claimBytes, &sdkClaims)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get claims: %v", err)
+		return nil, fmt.Errorf("unable to get claims: %w", err)
 	}
-
-	if err := validateUsername(j.usernameClaim, &sdkClaims); err != nil {
+	sdkClaims.UsernameClaim = j.usernameClaim
+	if err := sdkClaims.ValidateUsername(); err != nil {
 		return nil, err
 	}
-
 	return &sdkClaims, nil
-}
-
-func (j *JwtAuthenticator) Username(claims *Claims) string {
-	return getUsername(j.usernameClaim, claims)
 }

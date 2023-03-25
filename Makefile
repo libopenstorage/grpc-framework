@@ -72,6 +72,11 @@ doc-serve: doc-env
 		cd website && \
 		mkdocs serve"
 
+mockgen:
+	go install github.com/golang/mock/mockgen@v1.6.0
+	mockgen -destination=pkg/auth/mock_auth.go -package=auth -source=pkg/auth/auth.go Athenticator
+
+
 .PHONY: clean proto go-mod-publish travis-verify verify \
 	testapp test pr-verify errcheck vet fmt build \
 	doc-env doc-build doc-serve container

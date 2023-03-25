@@ -51,6 +51,7 @@ func TestTokenSharedSecretSimple(t *testing.T) {
 	token, err := jwt.Parse(rawtoken, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
+	assert.NoError(t, err)
 	assert.True(t, token.Valid)
 	tokenClaims, ok := token.Claims.(jwt.MapClaims)
 	assert.True(t, ok)
@@ -105,6 +106,7 @@ func TestTokenExpired(t *testing.T) {
 	token, err := jwt.Parse(rawtoken, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
+	assert.Error(t, err)
 	assert.False(t, token.Valid)
 }
 
