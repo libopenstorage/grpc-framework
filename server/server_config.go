@@ -290,3 +290,13 @@ func (c *ServerConfig) WithDefaultRateLimiters() *ServerConfig {
 		WithRateLimiter(DefaultRateLimiter).
 		WithRateLimiterPerUser(DefaultRateLimiterPerUser)
 }
+
+func (c *ServerConfig) WithDefaultGenericRoleManager() *ServerConfig {
+	if c.Security == nil {
+		c.Security = &SecurityConfig{}
+	}
+
+	c.Security.Role = role.NewDefaultGenericRoleManager()
+
+	return c
+}
