@@ -1,50 +1,71 @@
-FROM golang
-LABEL org.opencontainers.image.authors="lpabon@purestorage.com"
+#!/bin/bash
+
+function fail()
+{
+    echo $@ >&2
+    exit 1
+}
+
+function RUN()
+{
+     eval $@ || fail "Failed to run [$@]: $?"
+}
+
+# output: ${PLATFORM}
+PLATFORM=$(uname -m)
+if [ "$PLATFORM" = "x86_64" ] ; then
+    ARCH="amd64"
+elif [ "$PLATFORM" = "aarch64" ] ; then
+	ARCH="arm64"
+else
+    echo "Unknown platform: $PLATFORM"
+    exit 1
+fi
 
 ## VERSIONS
 ## Confirm that the links are correct. Some tools change the links on newer versions
 # https://go.dev/dl/
-ARG GFGOLANG=1.19.7
+GFGOLANG=1.20.4
 # https://github.com/grpc-ecosystem/grpc-gateway/releases
-ARG GFGRPCGATEWAY=2.15.2
+GFGRPCGATEWAY=2.15.2
 # https://github.com/pseudomuto/protoc-gen-doc/releases
-ARG GFPROTOCGENDOC=1.5.1
+GFPROTOCGENDOC=1.5.1
 # https://github.com/protocolbuffers/protobuf/releases
-ARG GFPROTOC=3.20.3
+GFPROTOC=3.20.3
 
 # Get gRPC golang versions from here: https://grpc.io/docs/languages/go/quickstart/
 # Also see: https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go
-ARG GFPROTOCGENGO=1.28.1
+GFPROTOCGENGO=1.28.1
 # Also see: https://pkg.go.dev/google.golang.org/grpc
-ARG GFPROTOCGENGOGRPC=1.2
-
-ENV GOPATH=/go
-RUN apt update
-
-# Install latest golang
-RUN rm -rf /usr/local/go
-RUN wget -nv https://dl.google.com/go/go${GFGOLANG}.linux-amd64.tar.gz && \
-	tar -xf go${GFGOLANG}.linux-amd64.tar.gz && mv go /usr/local  
-
-# Install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash 
-
-# Install protoc
-RUN apt-get install -y unzip
-RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${GFPROTOC}/protoc-${GFPROTOC}-linux-x86_64.zip
-RUN unzip protoc-${GFPROTOC}-linux-x86_64.zip -d /usr/local
+GFPROTOCGENGOGRPC=1.2
 
 # Install tools from Ubuntu
 RUN apt-get -y -qq install \
-	python3 \
-	python3-pip \
-	rubygems \
-	nodejs \
 	make \
+	nodejs \
+	npm \
+	wget \
+	curl \
 	git && \
 	apt-get clean && \
 	apt-get autoclean
-RUN gem install grpc && gem install grpc-tools
+
+# Install latest golang
+RUN rm -rf /usr/local/go
+RUN wget -nv https://dl.google.com/go/go${GFGOLANG}.linux-${ARCH}.tar.gz && \
+	tar -xf go${GFGOLANG}.linux-${ARCH}.tar.gz && mv go /usr/local
+RUN rm -f go${GFGOLANG}.linux-${ARCH}.tar.gz
+
+
+# Install protoc
+if [ "${PLATFORM}" = "aarch64" ] ; then
+	PROTOCPLATFORM="aarch_64"
+else
+	PROTOCPLATFORM=$PLATFORM
+fi
+RUN apt-get install -y unzip
+RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${GFPROTOC}/protoc-${GFPROTOC}-linux-${PROTOCPLATFORM}.zip
+RUN unzip protoc-${GFPROTOC}-linux-${PROTOCPLATFORM}.zip -d /usr/local
 
 ##
 ## gRPC Gateway
@@ -72,9 +93,10 @@ RUN mkdir -p /go/src/github.com/googleapis && \
 ##
 ## proto-gen-doc
 ##
-RUN wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v${GFPROTOCGENDOC}/protoc-gen-doc_${GFPROTOCGENDOC}_linux_amd64.tar.gz && \
-	tar xzvf protoc-gen-doc_${GFPROTOCGENDOC}_linux_amd64.tar.gz && \
+RUN wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v${GFPROTOCGENDOC}/protoc-gen-doc_${GFPROTOCGENDOC}_linux_${ARCH}.tar.gz && \
+	tar xzvf protoc-gen-doc_${GFPROTOCGENDOC}_linux_${ARCH}.tar.gz && \
 	mv protoc-gen-doc /usr/local/bin
+RUN rm -f protoc-gen-doc_${GFPROTOCGENDOC}_linux_${ARCH}.tar.gz
 
 ##
 ## Install Google AIP api-linter
@@ -82,14 +104,10 @@ RUN wget https://github.com/pseudomuto/protoc-gen-doc/releases/download/v${GFPRO
 RUN go install github.com/googleapis/api-linter/cmd/api-linter@latest
 
 ##
-## grpc-framework additions
+## Cleanup
 ##
-# Install tools
-COPY ./tools/grpcfw* /usr/local/bin/
-# Add protofiles
-RUN mkdir -p /go/src/github.com/libopenstorage/grpc-framework
-COPY . /go/src/github.com/libopenstorage/grpc-framework
+RUN rm -rf /usr/share/doc
+RUN rm -rf /go/pkg/*
+RUN apt remove -y $(dpkg -l | grep X11 | awk '{print $2}' | cut -d: -f1)
+RUN apt autoremove -y
 
-# Finally, set working directory
-RUN mkdir -p /go/src/code
-WORKDIR /go/src/code
