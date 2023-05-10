@@ -55,7 +55,26 @@ clean:
 	$(MAKE) clean -C test/app
 
 container:
-	docker build -f Dockerfile.proto -t quay.io/openstorage/grpc-framework:$(TAG) .
+	docker build -t quay.io/openstorage/grpc-framework:$(TAG) .
+
+container-buildx-install:
+	@echo "Setting up multiarch emulation"
+	docker run --privileged --rm tonistiigi/binfmt --install all
+	@echo "Setting up multiarch builder"
+	docker buildx create --name gfwbuilder --driver docker-container --bootstrap
+	docker buildx use gfwbuilder
+
+# Run: make container-buildx-install first to install the emulation
+container-release:
+	@echo "This will automatically push. Must be logged in to quay.io"
+	docker buildx build \
+		--push \
+		--platform linux/amd64,linux/arm64  \
+		--tag quay.io/openstorage/grpc-framework:$(TAG) .
+
+container-buildx-uninstall:
+	docker buildx stop gfwbuilder
+	docker buildx rm gfwbuilder
 
 ./venv:
 	python3 -m venv venv
@@ -77,4 +96,6 @@ doc-serve: doc-env
 
 .PHONY: clean proto go-mod-publish travis-verify verify \
 	testapp test pr-verify errcheck vet fmt build \
-	doc-env doc-build doc-serve container testapp-verify
+	doc-env doc-build doc-serve container testapp-verify \
+	container-buildx-install container-release container-buildx-uninstall
+
