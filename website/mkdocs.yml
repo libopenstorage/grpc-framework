@@ -10,30 +10,30 @@ nav:
         - Introduction: intro.md
     - Tutorials:
         - Introduction: tutorial/intro.md
-        - Proto file: tutorial/proto.md
-        - Setting up the server: tutorial/server.md
-        - Connect with the client: tutorial/client.md
-        - REST: tutorial/rest.md
-        - Rate limit: tutorial/rate-limit.md 
-        - Security:
-            - TLS: tutorial/security/tls.md
-            - Authentication: tutorial/security/authentication.md
-            - RBAC authorization: tutorial/security/rbac.md
-            - Resource authorization: tutorial/security/ownership.md
+        #- Proto file: tutorial/proto.md
+        #- Setting up the server: tutorial/server.md
+        #- Connect with the client: tutorial/client.md
+        #- REST: tutorial/rest.md
+        #- Rate limit: tutorial/rate-limit.md 
+        #- Security:
+        #    - TLS: tutorial/security/tls.md
+        #    - Authentication: tutorial/security/authentication.md
+        #    - RBAC authorization: tutorial/security/rbac.md
+        #    - Resource authorization: tutorial/security/ownership.md
     - Reference:
         - Introduction: reference/intro.md
         - Style Guide: reference/style-guide.md
-        - REST: reference/rest.md
-        - Rate Limiter: reference/rate-limiter.md
+        #- REST: reference/rest.md
+        #- Rate Limiter: reference/rate-limiter.md
         - Generate Documentation:
             - Introduction: reference/gen-doc.md
             - Example Generated documentation: reference/hello.pb.md
-        - Security:
-            - Introduction: reference/security/intro.md
-            - Authentication: reference/security/authentication.md
-            - Authorization: reference/security/authorization.md
-            - TLS: reference/security/tls.md
-            - Logging and Audit: reference/security/audit.md
+        #- Security:
+        #    - Introduction: reference/security/intro.md
+        #    - Authentication: reference/security/authentication.md
+        #    - Authorization: reference/security/authorization.md
+        #    - TLS: reference/security/tls.md
+        #    - Logging and Audit: reference/security/audit.md
     - About: about.md
 markdown_extensions:
     - abbr
