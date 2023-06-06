@@ -21,13 +21,13 @@ easily. The project provides developers with the following features:
 To add the library to your Golang application use the following command:
 
 ```bash
-go get github.com/libopenstorage/grpc-framework@v0.0.6
+go get github.com/libopenstorage/grpc-framework@v0.0.8
 ```
 
 Also, use the following container version on your builds:
 
 ```
-quay.io/openstorage/grpc-framework:v0.0.6
+quay.io/openstorage/grpc-framework:v0.0.8
 ```
 
 Here is an example:
