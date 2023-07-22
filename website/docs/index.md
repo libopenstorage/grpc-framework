@@ -27,7 +27,7 @@ go get github.com/libopenstorage/grpc-framework@v0.0.8
 Also, use the following container version on your builds:
 
 ```
-quay.io/openstorage/grpc-framework:v0.0.8
+quay.io/openstorage/grpc-framework:v0.0.9
 ```
 
 Here is an example:
@@ -44,7 +44,7 @@ proto:
 		-e "PROTO_USER=$(shell id -u)" \
 		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
-		quay.io/openstorage/grpc-framework:v0.0.8 \
+		quay.io/openstorage/grpc-framework:v0.0.9 \
 			make docker-proto
 
 docker-proto:

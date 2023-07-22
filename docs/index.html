@@ -9,7 +9,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-8.5.10">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
     
     
       
@@ -692,7 +692,7 @@ easily. The project provides developers with the following features:</p>
 <pre><code class="language-bash">go get github.com/libopenstorage/grpc-framework@v0.0.8
 </code></pre>
 <p>Also, use the following container version on your builds:</p>
-<pre><code>quay.io/openstorage/grpc-framework:v0.0.8
+<pre><code>quay.io/openstorage/grpc-framework:v0.0.9
 </code></pre>
 <p>Here is an example:</p>
 <pre><code class="language-Makefile">PROTO_FILE = ./api/hello.proto
@@ -706,7 +706,7 @@ proto:
         -e &quot;PROTO_USER=$(shell id -u)&quot; \
         -e &quot;PROTO_GROUP=$(shell id -g)&quot; \
         -e &quot;PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin&quot; \
-        quay.io/openstorage/grpc-framework:v0.0.8 \
+        quay.io/openstorage/grpc-framework:v0.0.9 \
             make docker-proto
 
 docker-proto:

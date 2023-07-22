@@ -1,6 +1,6 @@
 
 PROTO_FILE = ./api/hello.proto
-TAG = v0.0.8
+TAG = v0.0.9
 
 all: proto server client
 
