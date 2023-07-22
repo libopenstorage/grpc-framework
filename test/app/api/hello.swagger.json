@@ -124,7 +124,10 @@
                         "title": "Name to say hello to"
                     }
                 },
-                "description": "The request message containing the user's name."
+                "description": "The request message containing the user's name.",
+                "required": [
+                    "name"
+                ]
             },
             "v1HelloGreeterSayHelloResponse": {
                 "type": "object",

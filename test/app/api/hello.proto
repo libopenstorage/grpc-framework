@@ -15,6 +15,7 @@
 syntax = "proto3";
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 
 package hello.v1;
 
@@ -49,7 +50,7 @@ service HelloIdentity {
 // The request message containing the user's name.
 message HelloGreeterSayHelloRequest {
   // Name to say hello to
-  string name = 1;
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // The response message containing the greetings
