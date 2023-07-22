@@ -25,19 +25,19 @@ fi
 ## VERSIONS
 ## Confirm that the links are correct. Some tools change the links on newer versions
 # https://go.dev/dl/
-GFGOLANG=1.20.4
+GFGOLANG=1.20.6
 # https://github.com/grpc-ecosystem/grpc-gateway/releases
 GFGRPCGATEWAY=2.15.2
 # https://github.com/pseudomuto/protoc-gen-doc/releases
 GFPROTOCGENDOC=1.5.1
 # https://github.com/protocolbuffers/protobuf/releases
-GFPROTOC=3.20.3
+GFPROTOC=23.4
 
 # Get gRPC golang versions from here: https://grpc.io/docs/languages/go/quickstart/
 # Also see: https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go
-GFPROTOCGENGO=1.28.1
+GFPROTOCGENGO=1.31.0
 # Also see: https://pkg.go.dev/google.golang.org/grpc
-GFPROTOCGENGOGRPC=1.2
+GFPROTOCGENGOGRPC=1.3.0
 
 # Install tools from Ubuntu
 RUN apt-get -y -qq install \
