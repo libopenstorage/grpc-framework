@@ -104,11 +104,11 @@ func (s *GrpcFrameworkServer) auth(ctx context.Context) (context.Context, error)
 	}
 	claims, err := authenticator.AuthenticateToken(ctx, token)
 	if err != nil {
-		return nil, auditLogWarningf(codes.PermissionDenied, err, "Unable to authenticate token")
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to authenticate token")
 	}
 	username, err := claims.GetUsername()
 	if err != nil {
-		return nil, auditLogWarningf(codes.PermissionDenied, err, "Unable to get username from token")
+		return nil, auditLogWarningf(codes.Unauthenticated, err, "Unable to get username from token")
 	}
 	// Add authorization information back into the context so that other
 	// functions can get access to this information.
