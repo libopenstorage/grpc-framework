@@ -147,9 +147,22 @@ type ServerConfig struct {
 	AuthZStreamInterceptor grpc.StreamServerInterceptor
 
 	// ExternalAuthZChecker plugs into the external authorizer framework's authZ interceptor
-	ExternalAuthZChecker     ExternalAuthZChecker
+	ExternalAuthZChecker ExternalAuthZChecker
+
+	// InsecureNoAuthNAuthZReqs is a list of API request types for which AuthN
+	// or AuthZ checks are skipped.  When
+	// ExternalAuthZRequestGetter.GetAuthZRequest() returns
+	// InsecureNoAuthNAuthZ, the framework ensures that the request type is also
+	// present in InsecureNoAuthNAuthZReqs  list. This adds a second level of
+	// confirmation that it is ok to skip the auth checks for this request.
+	// Refer to the documentation of ExternalAuthZRequestGetter interface for
+	// more details.
 	InsecureNoAuthNAuthZReqs []interface{}
-	InsecureNoAuthZReqs      []interface{}
+
+	// InsecureNoAuthZReqs is data passed by the caller for the caller's
+	// interceptor containing information on what APIs to not check for
+	// authorization
+	InsecureNoAuthZReqs []interface{}
 }
 
 var (
