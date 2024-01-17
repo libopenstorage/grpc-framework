@@ -21,7 +21,7 @@ proto:
 		-e "PROTO_USER=$(shell id -u)" \
 		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
-		quay.io/openstorage/grpc-framework:v0.1.0 \
+		quay.io/openstorage/grpc-framework:v0.1.1 \
 			make docker-proto
 
 docker-proto:
@@ -151,3 +151,4 @@ simple to utilize on your projects.
 
 [protoc-doc]: https://github.com/pseudomuto/protoc-gen-doc
 [go-grpc-prometheus]: https://github.com/grpc-ecosystem/go-grpc-prometheus
+
