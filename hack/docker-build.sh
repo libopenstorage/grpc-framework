@@ -25,13 +25,13 @@ fi
 ## VERSIONS
 ## Confirm that the links are correct. Some tools change the links on newer versions
 # https://go.dev/dl/
-GFGOLANG=1.20.12
+GFGOLANG=1.21.7
 # https://github.com/grpc-ecosystem/grpc-gateway/releases
-GFGRPCGATEWAY=2.19.0
+GFGRPCGATEWAY=2.19.1
 # https://github.com/pseudomuto/protoc-gen-doc/releases
 GFPROTOCGENDOC=1.5.1
 # https://github.com/protocolbuffers/protobuf/releases
-GFPROTOC=25.1
+GFPROTOC=25.3
 
 # Get gRPC golang versions from here: https://grpc.io/docs/languages/go/quickstart/
 # Also see: https://pkg.go.dev/google.golang.org/protobuf/cmd/protoc-gen-go
@@ -46,6 +46,9 @@ RUN apt-get -y -qq install \
 	npm \
 	wget \
 	curl \
+	python3 \
+	python3-venv \
+	unzip \
 	git && \
 	apt-get clean && \
 	apt-get autoclean
@@ -63,9 +66,9 @@ if [ "${PLATFORM}" = "aarch64" ] ; then
 else
 	PROTOCPLATFORM=$PLATFORM
 fi
-RUN apt-get install -y unzip
 RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${GFPROTOC}/protoc-${GFPROTOC}-linux-${PROTOCPLATFORM}.zip
 RUN unzip protoc-${GFPROTOC}-linux-${PROTOCPLATFORM}.zip -d /usr/local
+RUN rm -f protoc-${GFPROTOC}-linux-${PROTOCPLATFORM}.zip
 
 ##
 ## gRPC Gateway
@@ -108,6 +111,6 @@ RUN go install github.com/googleapis/api-linter/cmd/api-linter@latest
 ##
 RUN rm -rf /usr/share/doc
 RUN rm -rf /go/pkg/*
-RUN apt remove -y $(dpkg -l | grep X11 | awk '{print $2}' | cut -d: -f1)
+RUN apt remove -y unzip $(dpkg -l | grep X11 | awk '{print $2}' | cut -d: -f1)
 RUN apt autoremove -y
 

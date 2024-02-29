@@ -689,10 +689,10 @@ easily. The project provides developers with the following features:</p>
 </ul>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <p>To add the library to your Golang application use the following command:</p>
-<pre><code class="language-bash">go get github.com/libopenstorage/grpc-framework@v0.1.1
+<pre><code class="language-bash">go get github.com/libopenstorage/grpc-framework@v0.1.2
 </code></pre>
 <p>Also, use the following container version on your builds:</p>
-<pre><code>quay.io/openstorage/grpc-framework:v0.1.1
+<pre><code>quay.io/openstorage/grpc-framework:v0.1.2
 </code></pre>
 <p>Here is an example:</p>
 <pre><code class="language-Makefile">PROTO_FILE = ./api/hello.proto
@@ -706,7 +706,7 @@ proto:
         -e &quot;PROTO_USER=$(shell id -u)&quot; \
         -e &quot;PROTO_GROUP=$(shell id -g)&quot; \
         -e &quot;PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin&quot; \
-        quay.io/openstorage/grpc-framework:v0.1.1 \
+        quay.io/openstorage/grpc-framework:v0.1.2 \
             make docker-proto
 
 docker-proto:

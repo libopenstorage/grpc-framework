@@ -79,6 +79,7 @@ container-buildx-uninstall:
 ./venv:
 	python3 -m venv venv
 	bash -c "source venv/bin/activate && \
+		pip3 install --upgrade pip && \
 		pip3 install -r requirements.txt"
 	@echo "Type: 'source venv/bin/active' to get access to mkdocs"
 
