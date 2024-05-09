@@ -50,7 +50,7 @@ go mod init hello
 Now add the grpc-framework as a dependency:
 
 ```
-go get github.com/libopenstorage/grpc-framework@v0.1.2
+go get github.com/libopenstorage/grpc-framework@v0.1.3
 ```
 
 Let golang determine the rest of the dependencies:

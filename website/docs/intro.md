@@ -1,6 +1,6 @@
 # Introduction
 
-The following will guide through some of the features provided 
+The following will guide through some of the features provided
 by this framework
 
 ## Containerize tools
@@ -21,7 +21,7 @@ proto:
 		-e "PROTO_USER=$(shell id -u)" \
 		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
-		quay.io/openstorage/grpc-framework:v0.1.2 \
+		quay.io/openstorage/grpc-framework:v0.1.3 \
 			make docker-proto
 
 docker-proto:
@@ -50,7 +50,7 @@ provided to REST client developers.
 [swagger]: https://swagger.io/
 
 The following is an example of how a gRPC service can be used from a REST
-client. 
+client.
 
 ```proto
 // The greeting service definition.
@@ -110,12 +110,12 @@ $ curl  -X POST -d '{ "name": "Luis" }' \
 
 ## Generate Markdown documentation
 The framework also provides [protoc-doc] to generate Markdown documentation from
-the comments on your protocol buffers files. 
+the comments on your protocol buffers files.
 
 ## Security
 The framework makes it simple to add authentication, authorization, and TLS
 to secure your application. Authentication and RBAC authorization are provided
-by a set of interceptors in the gRPC server. 
+by a set of interceptors in the gRPC server.
 
 ### Authentication (OIDC and JWT supported)
 The framework support shared secret, public-private key, or OpenID Connect
