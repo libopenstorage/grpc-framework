@@ -1,0 +1,79 @@
+#
+# For more information see https://squidfunk.github.io/mkdocs-material/getting-started/
+#
+
+# NOTE! This took me a while to figure out, but mkdocs does not accept any section label with a doc page
+site_name: gRPC and REST APIs
+plugins:
+    - search
+    - include_dir_to_nav
+nav:
+markdown_extensions:
+    - abbr
+    - admonition
+    - attr_list
+    - def_list
+    - footnotes
+    - meta
+    - md_in_html
+    - toc:
+        permalink: true
+    - pymdownx.arithmatex:
+        generic: true
+    - pymdownx.betterem:
+        smart_enable: all
+    - pymdownx.caret
+    - pymdownx.details
+    - pymdownx.highlight:
+        anchor_linenums: true
+    - pymdownx.inlinehilite
+    - pymdownx.keys
+    - pymdownx.magiclink:
+        repo_url_shorthand: true
+        user: squidfunk
+        repo: mkdocs-material
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.tabbed:
+        alternate_style: true
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+theme: 
+    name: material
+    features:
+        - content.code.annotate
+        # - content.tabs.link
+        - content.tooltips
+        # - header.autohide
+        # - navigation.expand
+        - navigation.indexes
+        # - navigation.instant
+        # - navigation.prune
+        - navigation.sections
+        - navigation.tabs
+        # - navigation.tabs.sticky
+        - navigation.top
+        - navigation.tracking
+        - search.highlight
+        - search.share
+        - search.suggest
+        - toc.follow
+    palette:
+        - scheme: default
+          primary: indigo
+          accent: indigo
+          toggle:
+                icon: material/brightness-7
+                name: Switch to dark mode
+        - scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+                icon: material/brightness-4
+                name: Switch to light mode
+    font:
+        text: Roboto
+        code: Roboto Mono
+site_dir: ../docs
+docs_dir: ./content

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PROTOC=protoc
+PROTOS_PATH=${GOPATH}/src
+tmpfile=/tmp/swagger.$$
+
+if [ $# -lt 1 ] ; then
+	echo "Must provide proto file path"
+	echo "Usage: grpcfw <proto file>"
+	exit 1
+fi
+PROTOSRC_PATH=$(dirname $1)
+PROTO_FILE=$1
+
+p="${1##*/}"
+PROTO_NAME=${p%.*}
+
+echo "Generating ${L} code for $PROTO_FILE"
+if [ "${L}" == "go" ] ; then
+	$PROTOC -I. \
+		-I${TOP} \
+		-I${PROTOS_PATH}/github.com/grpc-ecosystem/grpc-gateway \
+		-I${PROTOS_PATH}/github.com/googleapis/googleapis \
+		--go_out=. \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=. \
+		--go-grpc_opt=paths=source_relative \
+		$PROTO_FILE
+
+# L is the language defined at the TOP Makefile
+elif [ "${L}" == "python" ] ; then
+		. ${TOP}/sdk/python/python-venv/bin/activate
+		PYTHONOUT=${TOP}/sdk/python
+		mkdir -p ${PYTHONOUT} > /dev/null 2>&1
+		python3 -m grpc_tools.protoc \
+			-I. \
+			-I${TOP} \
+			-I${PROTOS_PATH}/github.com/grpc-ecosystem/grpc-gateway \
+			-I${PROTOS_PATH}/github.com/googleapis/googleapis \
+			--python_out=${PYTHONOUT} \
+			--pyi_out=${PYTHONOUT} \
+			--grpc_python_out=${PYTHONOUT} \
+			$PROTO_FILE
+fi

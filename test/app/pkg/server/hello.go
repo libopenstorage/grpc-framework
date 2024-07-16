@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/libopenstorage/grpc-framework/test/app/api"
+	api "github.com/libopenstorage/grpc-framework/test/app/protos/apis/hello/apiv1"
 	"github.com/sirupsen/logrus"
 )
 
