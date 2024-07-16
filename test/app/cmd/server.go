@@ -24,8 +24,8 @@ import (
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/util"
 	"github.com/libopenstorage/grpc-framework/server"
-	"github.com/libopenstorage/grpc-framework/test/app/api"
 	helloserver "github.com/libopenstorage/grpc-framework/test/app/pkg/server"
+	api "github.com/libopenstorage/grpc-framework/test/app/protos/apis/hello/apiv1"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

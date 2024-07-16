@@ -14,7 +14,7 @@ import (
 
 	"github.com/libopenstorage/grpc-framework/pkg/auth"
 	"github.com/libopenstorage/grpc-framework/pkg/auth/role"
-	"github.com/libopenstorage/grpc-framework/test/app/api"
+	api "github.com/libopenstorage/grpc-framework/test/app/protos/apis/hello/apiv1"
 	"github.com/sirupsen/logrus"
 )
 

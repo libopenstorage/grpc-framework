@@ -1,0 +1,106 @@
+// Please use the following editor setup for this file:
+// Tab size=2; Tabs as spaces; Clean up trailing whitepsace
+//
+// In vim add: au FileType proto setl sw=2 ts=2 expandtab list
+//
+// In vscode install vscode-proto3 extension and add this to your settings.json:
+//    "[proto3]": {
+//        "editor.tabSize": 2,
+//        "editor.insertSpaces": true,
+//        "editor.rulers": [80],
+//        "editor.detectIndentation": true,
+//        "files.trimTrailingWhitespace": true
+//    }
+//
+syntax = "proto3";
+
+package hello.example.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/libopenstorage/grpc-framework/test/app/apis/example/apiv1;example";
+option java_multiple_files = true;
+option java_package = "com.hello.example.v1";
+option java_outer_classname = "ExampleProto";
+
+// The greeting service definition.
+service ExampleGreeter {
+  // Sends a greeting
+  rpc SayExample (ExampleGreeterSayExampleRequest)
+    returns (ExampleGreeterSayExampleResponse) {
+      option(google.api.http) = {
+        post: "/v1/greeter:sayExample"
+        body: "*"
+      };
+  }
+}
+
+// Identification information services
+service ExampleIdentity {
+  // Gets server version
+  rpc ServerVersion(ExampleIdentityVersionRequest)
+    returns (ExampleIdentityVersionResponse) {
+      option(google.api.http) = {
+        get: "/v1/identity:serverVersion"
+      };
+    }
+}
+
+// The request message containing the user's name.
+message ExampleGreeterSayExampleRequest {
+  // Name to say Example to
+  string name = 1;
+}
+
+// The response message containing the greetings
+message ExampleGreeterSayExampleResponse {
+  // Message returned from server containing 'name'
+  string message = 1;
+}
+
+// Empty request
+message ExampleIdentityVersionRequest {
+}
+
+// Defines the response to version
+message ExampleIdentityVersionResponse {
+  // Example application version
+  ExampleVersion server_version = 1;
+}
+
+// Example version in Major.Minor.Patch format. The goal of this
+// message is to provide clients a method to determine the server
+// and client versions.
+message ExampleVersion {
+
+  // These values are constants that can be used by the
+  // client and server applications
+  enum Version {
+    // Allows multiple values to be set to the same integer
+    // Set when needed
+    option allow_alias = true;
+
+    // Must be set in the proto file; ignore.
+    VERSION_UNSPECIFIED = 0;
+
+    // Version major value of this specification
+    MAJOR = 0;
+    // Version minor value of this specification
+    MINOR = 0;
+    // Version patch value of this specification
+    PATCH = 1;
+  }
+
+  // (-- The following cannot be set to use the enum Version because the REST --)
+  // (-- Gateway would then return the string value of the enum. --)
+
+  // Version major number
+  int32 major = 1;
+  // Version minor number
+  int32 minor = 2;
+  // Version patch number
+  int32 patch = 3;
+  // String representation of the version. Must be
+  // in `major.minor.patch` format.
+  string version = 4;
+}

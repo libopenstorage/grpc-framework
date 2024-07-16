@@ -1,0 +1,178 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "apis/hello/apiv1/hello.proto",
+        "version": "version not set"
+    },
+    "tags": [
+        {
+            "name": "HelloGreeter"
+        },
+        {
+            "name": "HelloIdentity"
+        }
+    ],
+    "paths": {
+        "/v1/greeter:sayHello": {
+            "post": {
+                "summary": "Sends a greeting",
+                "operationId": "HelloGreeter_SayHello",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1HelloGreeterSayHelloResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/v1HelloGreeterSayHelloRequest"
+                            }
+                        }
+                    },
+                    "description": "The request message containing the user's name.",
+                    "required": true
+                },
+                "tags": [
+                    "HelloGreeter"
+                ]
+            }
+        },
+        "/v1/identity:serverVersion": {
+            "get": {
+                "summary": "Gets server version",
+                "operationId": "HelloIdentity_ServerVersion",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1HelloIdentityVersionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "HelloIdentity"
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "protobufAny": {
+                "type": "object",
+                "properties": {
+                    "@type": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": {}
+            },
+            "rpcStatus": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/protobufAny"
+                        }
+                    }
+                }
+            },
+            "v1HelloGreeterSayHelloRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name to say hello to"
+                    }
+                },
+                "description": "The request message containing the user's name.",
+                "required": [
+                    "name"
+                ]
+            },
+            "v1HelloGreeterSayHelloResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message returned from server containing 'name'"
+                    }
+                },
+                "title": "The response message containing the greetings"
+            },
+            "v1HelloIdentityVersionResponse": {
+                "type": "object",
+                "properties": {
+                    "serverVersion": {
+                        "$ref": "#/components/schemas/v1HelloVersion"
+                    }
+                },
+                "title": "Defines the response to version"
+            },
+            "v1HelloVersion": {
+                "type": "object",
+                "properties": {
+                    "major": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version major number"
+                    },
+                    "minor": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version minor number"
+                    },
+                    "patch": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version patch number"
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "String representation of the version. Must be\nin `major.minor.patch` format."
+                    }
+                },
+                "description": "Hello version in Major.Minor.Patch format. The goal of this\nmessage is to provide clients a method to determine the server\nand client versions."
+            }
+        }
+    }
+}

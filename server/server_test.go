@@ -24,8 +24,8 @@ import (
 	"time"
 
 	grpcclient "github.com/libopenstorage/grpc-framework/pkg/grpc/client"
-	appapi "github.com/libopenstorage/grpc-framework/test/app/api"
 	appserver "github.com/libopenstorage/grpc-framework/test/app/pkg/server"
+	appapi "github.com/libopenstorage/grpc-framework/test/app/protos/apis/hello/apiv1"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"

@@ -4,3 +4,5 @@ test/app/bin
 client
 venv
 *.lint
+test/app/protos/website/content
+test/app/protos/website/web

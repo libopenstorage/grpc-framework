@@ -1,0 +1,175 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "apis/example/apiv1/example.proto",
+        "version": "version not set"
+    },
+    "tags": [
+        {
+            "name": "ExampleGreeter"
+        },
+        {
+            "name": "ExampleIdentity"
+        }
+    ],
+    "paths": {
+        "/v1/greeter:sayExample": {
+            "post": {
+                "summary": "Sends a greeting",
+                "operationId": "ExampleGreeter_SayExample",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1ExampleGreeterSayExampleResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/v1ExampleGreeterSayExampleRequest"
+                            }
+                        }
+                    },
+                    "description": "The request message containing the user's name.",
+                    "required": true
+                },
+                "tags": [
+                    "ExampleGreeter"
+                ]
+            }
+        },
+        "/v1/identity:serverVersion": {
+            "get": {
+                "summary": "Gets server version",
+                "operationId": "ExampleIdentity_ServerVersion",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/v1ExampleIdentityVersionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rpcStatus"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ExampleIdentity"
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "protobufAny": {
+                "type": "object",
+                "properties": {
+                    "@type": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": {}
+            },
+            "rpcStatus": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/protobufAny"
+                        }
+                    }
+                }
+            },
+            "v1ExampleGreeterSayExampleRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name to say Example to"
+                    }
+                },
+                "description": "The request message containing the user's name."
+            },
+            "v1ExampleGreeterSayExampleResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message returned from server containing 'name'"
+                    }
+                },
+                "title": "The response message containing the greetings"
+            },
+            "v1ExampleIdentityVersionResponse": {
+                "type": "object",
+                "properties": {
+                    "serverVersion": {
+                        "$ref": "#/components/schemas/v1ExampleVersion"
+                    }
+                },
+                "title": "Defines the response to version"
+            },
+            "v1ExampleVersion": {
+                "type": "object",
+                "properties": {
+                    "major": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version major number"
+                    },
+                    "minor": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version minor number"
+                    },
+                    "patch": {
+                        "type": "integer",
+                        "format": "int32",
+                        "title": "Version patch number"
+                    },
+                    "version": {
+                        "type": "string",
+                        "description": "String representation of the version. Must be\nin `major.minor.patch` format."
+                    }
+                },
+                "description": "Example version in Major.Minor.Patch format. The goal of this\nmessage is to provide clients a method to determine the server\nand client versions."
+            }
+        }
+    }
+}

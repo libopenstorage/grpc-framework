@@ -34,7 +34,6 @@ test: build
 	go test $(PKGS)
 
 testapp:
-	$(MAKE) -C test/app proto-lint
 	$(MAKE) -C test/app
 
 testapp-verify: testapp

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PROTOC=protoc
+PROTOS_PATH=${GOPATH}/src
+tmpfile=/tmp/swagger.$$
+
+if [ $# -lt 1 ] ; then
+	echo "Must provide proto file path"
+	echo "Usage: grpcfw-doc <proto file>"
+	exit 1
+fi
+PROTOSRC_PATH=$(dirname $1)
+PROTO_FILE=$1
+
+p="${1##*/}"
+PROTO_NAME=${p%.*}
+
+	$PROTOC -I . \
+		-I ${TOP} \
+		-I $PROTOS_PATH/github.com/grpc-ecosystem/grpc-gateway \
+		-I $PROTOS_PATH/github.com/googleapis/googleapis \
+        --doc_out=${TOP}/tools/template/grpcfw.tmpl,${PROTO_NAME}.pb.md:${PROTOSRC_PATH}/. ${PROTO_FILE}
