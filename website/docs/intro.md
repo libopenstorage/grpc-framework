@@ -21,7 +21,7 @@ proto:
 		-e "PROTO_USER=$(shell id -u)" \
 		-e "PROTO_GROUP=$(shell id -g)" \
 		-e "PATH=/bin:/usr/bin:/usr/local/bin:/go/bin:/usr/local/go/bin" \
-		quay.io/openstorage/grpc-framework:v0.1.3 \
+		quay.io/openstorage/grpc-framework \
 			make docker-proto
 
 docker-proto:
