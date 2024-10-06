@@ -39,6 +39,9 @@ GFPROTOCGENGO=1.34.2
 # Also see: https://pkg.go.dev/google.golang.org/grpc/cmd/protoc-gen-go-grpc
 GFPROTOCGENGOGRPC=1.5.1
 
+# https://github.com/googleapis/api-linter/releases
+GFAPILINTER=1.67.3
+
 # Install tools from Ubuntu
 RUN apt-get -y -qq install \
 	make \
@@ -104,7 +107,7 @@ RUN rm -f protoc-gen-doc_${GFPROTOCGENDOC}_linux_${ARCH}.tar.gz
 ##
 ## Install Google AIP api-linter
 ##
-RUN go install github.com/googleapis/api-linter/cmd/api-linter@latest
+RUN go install github.com/googleapis/api-linter/cmd/api-linter@v${GFAPILINTER}
 
 ##
 ## Cleanup
