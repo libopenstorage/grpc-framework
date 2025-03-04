@@ -5,7 +5,7 @@ language: go
 go:
   - 1.21.x
 install:
-  - GO111MODULE=off go get -u github.com/vbatts/git-validation
+  - GO111MODULE=on go install github.com/vbatts/git-validation@latest
 jobs:
   include:
     - stage: PR Verify & e2e tests
