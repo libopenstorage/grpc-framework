@@ -54,7 +54,7 @@ clean:
 	$(MAKE) clean -C test/app
 
 container:
-	docker build -t quay.io/openstorage/grpc-framework:$(TAG) .
+	docker build -t docker.io/portworx/grpc-framework:$(TAG) .
 
 container-buildx-install:
 	@echo "Setting up multiarch emulation"
@@ -65,11 +65,11 @@ container-buildx-install:
 
 # Run: make container-buildx-install first to install the emulation
 container-release:
-	@echo "This will automatically push. Must be logged in to quay.io"
+	@echo "This will automatically push."
 	docker buildx build \
 		--push \
 		--platform linux/amd64,linux/arm64  \
-		--tag quay.io/openstorage/grpc-framework:$(TAG) .
+		--tag docker.io/portworx/grpc-framework:$(TAG) .
 
 container-buildx-uninstall:
 	docker buildx stop gfwbuilder
