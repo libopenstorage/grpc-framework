@@ -89,7 +89,7 @@ RUN npm install -g swagger2openapi
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v${GFPROTOCGENGO}
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v${GFPROTOCGENGOGRPC}
 # Install protoc-gen-validate
-RUN go install github.com/envoyproxy/protoc-gen-validate
+RUN go install github.com/envoyproxy/protoc-gen-validate@latest
 # Install Google Api proto files
 RUN mkdir -p /go/src/github.com/googleapis && \
 	cd /go/src/github.com/googleapis && \
