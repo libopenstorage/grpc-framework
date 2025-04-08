@@ -20,6 +20,7 @@
     #- core::0123::resource-type-name
     #- core::0123::resource-variables
     #- core::0124::reference-same-package
+    - core::0215::foreign-type-reference
     #- core::0126::unspecified
     #- core::0126::upper-snake-values
     #- core::0127::http-annotation
